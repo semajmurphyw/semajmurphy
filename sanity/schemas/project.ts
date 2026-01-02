@@ -39,7 +39,11 @@ export default defineType({
       name: 'releaseInfo',
       title: 'Release Info',
       type: 'array',
-      of: [{ type: 'block' }],
+      of: [
+        { type: 'block' },
+        { type: 'image', options: { hotspot: true } },
+        { type: 'youtubeEmbed' },
+      ],
     }),
     defineField({
       name: 'date',
@@ -51,7 +55,11 @@ export default defineType({
       name: 'credits',
       title: 'Credits',
       type: 'array',
-      of: [{ type: 'block' }],
+      of: [
+        { type: 'block' },
+        { type: 'image', options: { hotspot: true } },
+        { type: 'youtubeEmbed' },
+      ],
     }),
     defineField({
       name: 'collaborators',

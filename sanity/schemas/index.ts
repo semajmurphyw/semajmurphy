@@ -4,6 +4,7 @@ import video from './video'
 import biography from './biography'
 import photoGallery from './photoGallery'
 import socialMediaLink from './socialMediaLink'
+import youtubeEmbed from './youtubeEmbed'
 
 export const schemaTypes = [
   project,
@@ -12,5 +13,6 @@ export const schemaTypes = [
   biography,
   photoGallery,
   socialMediaLink,
+  youtubeEmbed,
 ]
 
