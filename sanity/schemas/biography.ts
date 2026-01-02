@@ -32,9 +32,13 @@ export default defineType({
       of: [{ type: 'block' }],
     }),
     defineField({
-      name: 'epkDownloadUrl',
-      title: 'EPK Download URL',
-      type: 'url',
+      name: 'epkDownload',
+      title: 'EPK Download',
+      type: 'file',
+      options: {
+        accept: '.pdf',
+      },
+      description: 'Upload the EPK PDF file',
     }),
   ],
   preview: {
