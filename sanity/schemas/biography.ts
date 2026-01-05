@@ -18,8 +18,16 @@ export default defineType({
       description: 'Short one-line description',
     }),
     defineField({
-      name: 'heroImage',
-      title: 'Hero Image',
+      name: 'bioImage',
+      title: 'Bio Image',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+    }),
+    defineField({
+      name: 'backgroundImage',
+      title: 'Background Image',
       type: 'image',
       options: {
         hotspot: true,
@@ -47,4 +55,3 @@ export default defineType({
     },
   },
 })
-
