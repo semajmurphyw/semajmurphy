@@ -39,28 +39,22 @@ export default defineType({
     defineField({
       name: 'category',
       title: 'Category',
-      type: 'string',
-      options: {
-        list: [
-          { title: 'Editorial', value: 'editorial' },
-          { title: 'Performance', value: 'performance' },
-          { title: 'Teaching', value: 'teaching' },
-        ],
-      },
+      type: 'reference',
+      to: [{ type: 'category' }],
       validation: (Rule) => Rule.required(),
     }),
   ],
   preview: {
     select: {
       title: 'title',
-      category: 'category',
+      categoryTitle: 'category.title',
       date: 'date',
       media: 'image',
     },
-    prepare({ title, category, date, media }) {
+    prepare({ title, categoryTitle, date, media }) {
       return {
         title,
-        subtitle: `${category} • ${date ? new Date(date).toLocaleDateString() : 'No date'}`,
+        subtitle: `${categoryTitle || 'No category'} • ${date ? new Date(date).toLocaleDateString() : 'No date'}`,
         media,
       }
     },
