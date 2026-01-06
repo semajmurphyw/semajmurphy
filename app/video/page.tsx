@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { client } from "@/sanity/lib/client";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import GalleryTabs from "./components/GalleryTabs";
+import VideoTabs from "./components/VideoTabs";
 
 async function getBiography() {
   const biography = await client.fetch(
@@ -27,21 +27,17 @@ async function getSocialMediaLinks() {
   return links;
 }
 
-async function getPhotoGallery() {
-  const photos = await client.fetch(
-    `*[_type == "photoGallery"] | order(date desc){
+async function getVideos() {
+  const videos = await client.fetch(
+    `*[_type == "video"] | order(date desc){
       _id,
       title,
-      image,
+      youtubeLink,
       date,
-      category->{
-        _id,
-        title,
-        slug
-      }
+      category
     }`
   );
-  return photos;
+  return videos;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -49,31 +45,22 @@ export async function generateMetadata(): Promise<Metadata> {
   const name = biography?.name || "";
   
   return {
-    title: `Gallery | ${name}`,
-    description: `Photo gallery of ${name}`,
+    title: `Videos | ${name}`,
+    description: `Watch videos featuring ${name}`,
   };
 }
 
-export default async function GalleryPage() {
+export default async function VideoPage() {
   const biography = await getBiography();
   const socialMediaLinks = await getSocialMediaLinks();
-  const photos = await getPhotoGallery();
-
-  // Get unique categories from photos
-  const categoryMap = new Map();
-  photos.forEach((photo: any) => {
-    if (photo.category && !categoryMap.has(photo.category._id)) {
-      categoryMap.set(photo.category._id, photo.category);
-    }
-  });
-  const categories = Array.from(categoryMap.values());
+  const videos = await getVideos();
 
   return (
     <>
       <Navbar name={biography?.name} socialMediaLinks={socialMediaLinks} />
       <main className="min-h-screen px-6 py-24 md:px-12 lg:px-24" style={{ backgroundColor: '#222222' }}>
         <Suspense fallback={<div className="text-white">Loading...</div>}>
-          <GalleryTabs photos={photos} categories={categories} />
+          <VideoTabs videos={videos} />
         </Suspense>
       </main>
       <Footer name={biography?.name} socialMediaLinks={socialMediaLinks} />

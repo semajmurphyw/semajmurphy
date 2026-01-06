@@ -1,15 +1,20 @@
 import Image from "next/image";
-import Link from "next/link";
+import type { Metadata } from "next";
 import { client } from "@/sanity/lib/client";
 import { urlFor } from "@/sanity/lib/image";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
+import HomeNavLinks from "./components/HomeNavLinks";
+import BiographySection from "./components/BiographySection";
+import OneLinerSection from "./components/OneLinerSection";
 
 async function getBiography() {
   const biography = await client.fetch(
     `*[_type == "biography" && _id == "biography"][0]{
       name,
-      backgroundImage
+      oneLiner,
+      backgroundImage,
+      biography
     }`
   );
   return biography;
@@ -27,6 +32,16 @@ async function getSocialMediaLinks() {
   return links;
 }
 
+export async function generateMetadata(): Promise<Metadata> {
+  const biography = await getBiography();
+  const name = biography?.name || "";
+  
+  return {
+    title: name,
+    description: biography?.oneLiner || `Official website of ${name}`,
+  };
+}
+
 export default async function Home() {
   const biography = await getBiography();
   const socialMediaLinks = await getSocialMediaLinks();
@@ -37,8 +52,8 @@ export default async function Home() {
 
   return (
     <>
-      {/* Hero Section - 100vh */}
-      <div className="relative h-screen w-screen overflow-hidden">
+      {/* Hero Section - Fixed/Sticky */}
+      <div className="fixed inset-0 h-screen w-screen overflow-hidden z-0">
         {/* Background Image */}
         {backgroundImageUrl && (
           <div className="absolute inset-0">
@@ -56,42 +71,23 @@ export default async function Home() {
         <Navbar name={biography?.name} socialMediaLinks={socialMediaLinks} />
 
         {/* Navigation Links - Bottom Right */}
-        <nav className="absolute bottom-0 right-0 z-10 flex flex-col items-end gap-4 p-6 md:p-8">
-          <a
-            href="#"
-            className="text-2xl font-medium uppercase text-white drop-shadow-lg transition-all hover:underline md:text-3xl"
-          >
-            About
-          </a>
-          <a
-            href="#"
-            className="text-2xl font-medium uppercase text-white drop-shadow-lg transition-all hover:underline md:text-3xl"
-          >
-            Videos
-          </a>
-          <a
-            href="#"
-            className="text-2xl font-medium uppercase text-white drop-shadow-lg transition-all hover:underline md:text-3xl"
-          >
-            Projects
-          </a>
-          <a
-            href="#"
-            className="text-2xl font-medium uppercase text-white drop-shadow-lg transition-all hover:underline md:text-3xl"
-          >
-            Press
-          </a>
-          <Link
-            href="/gallery"
-            className="text-2xl font-medium uppercase text-white drop-shadow-lg transition-all hover:underline md:text-3xl"
-          >
-            Gallery
-          </Link>
-        </nav>
+        <HomeNavLinks biography={biography} />
       </div>
 
-      {/* Footer - Below hero section */}
-      <Footer name={biography?.name} socialMediaLinks={socialMediaLinks} />
+      {/* One Liner Section - Transparent (50vw x 100vh) */}
+      {biography?.oneLiner && (
+        <OneLinerSection oneLiner={biography.oneLiner} />
+      )}
+
+      {/* Biography Section - Black Rectangle (Scrolls over hero) */}
+      {biography?.biography && (
+        <BiographySection biography={biography.biography} />
+      )}
+
+      {/* Footer - Below biography section */}
+      <div className="relative z-10">
+        <Footer name={biography?.name} socialMediaLinks={socialMediaLinks} />
+      </div>
     </>
   );
 }

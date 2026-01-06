@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { client } from "@/sanity/lib/client";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import GalleryTabs from "./components/GalleryTabs";
+import ProjectTabs from "./components/ProjectTabs";
 
 async function getBiography() {
   const biography = await client.fetch(
@@ -27,21 +27,19 @@ async function getSocialMediaLinks() {
   return links;
 }
 
-async function getPhotoGallery() {
-  const photos = await client.fetch(
-    `*[_type == "photoGallery"] | order(date desc){
+async function getProjects() {
+  const projects = await client.fetch(
+    `*[_type == "project"] | order(date desc){
       _id,
       title,
-      image,
+      slug,
+      category,
       date,
-      category->{
-        _id,
-        title,
-        slug
-      }
+      releaseInfo,
+      credits
     }`
   );
-  return photos;
+  return projects;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -49,31 +47,22 @@ export async function generateMetadata(): Promise<Metadata> {
   const name = biography?.name || "";
   
   return {
-    title: `Gallery | ${name}`,
-    description: `Photo gallery of ${name}`,
+    title: `Projects | ${name}`,
+    description: `View projects by ${name}`,
   };
 }
 
-export default async function GalleryPage() {
+export default async function ProjectsPage() {
   const biography = await getBiography();
   const socialMediaLinks = await getSocialMediaLinks();
-  const photos = await getPhotoGallery();
-
-  // Get unique categories from photos
-  const categoryMap = new Map();
-  photos.forEach((photo: any) => {
-    if (photo.category && !categoryMap.has(photo.category._id)) {
-      categoryMap.set(photo.category._id, photo.category);
-    }
-  });
-  const categories = Array.from(categoryMap.values());
+  const projects = await getProjects();
 
   return (
     <>
       <Navbar name={biography?.name} socialMediaLinks={socialMediaLinks} />
       <main className="min-h-screen px-6 py-24 md:px-12 lg:px-24" style={{ backgroundColor: '#222222' }}>
         <Suspense fallback={<div className="text-white">Loading...</div>}>
-          <GalleryTabs photos={photos} categories={categories} />
+          <ProjectTabs projects={projects} />
         </Suspense>
       </main>
       <Footer name={biography?.name} socialMediaLinks={socialMediaLinks} />

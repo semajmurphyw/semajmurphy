@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import { urlFor } from "@/sanity/lib/image";
 
 interface SocialMediaLink {
@@ -18,9 +19,11 @@ export default function Navbar({ name, socialMediaLinks }: NavbarProps) {
     <nav className="fixed top-0 left-0 right-0 z-50 flex w-full items-center justify-between p-6 md:p-8">
       {/* Name - Top Left */}
       {name && (
-        <h1 className="text-2xl font-semibold text-white drop-shadow-lg md:text-3xl lg:text-4xl">
-          {name}
-        </h1>
+        <Link href="/">
+          <h1 className="text-2xl font-semibold text-white transition-opacity hover:opacity-80 md:text-3xl lg:text-4xl">
+            {name}
+          </h1>
+        </Link>
       )}
 
       {/* Social Media Icons - Top Right */}
@@ -45,10 +48,9 @@ export default function Navbar({ name, socialMediaLinks }: NavbarProps) {
                     alt={link.platformName}
                     width={32}
                     height={32}
-                    className="drop-shadow-lg"
                   />
                 ) : (
-                  <span className="text-white drop-shadow-lg">
+                  <span className="text-white">
                     {link.platformName}
                   </span>
                 )}

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
-import { urlFor } from "@/sanity/lib/image";
+import { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import GalleryGrid from "./GalleryGrid";
 
 interface Category {
   _id: string;
@@ -26,59 +26,83 @@ interface GalleryTabsProps {
 }
 
 export default function GalleryTabs({ photos, categories }: GalleryTabsProps) {
-  const [activeCategoryId, setActiveCategoryId] = useState<string>(
-    categories[0]?._id || ""
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const categoryParam = searchParams.get("category");
+
+  // Get category slug from category object
+  const getCategorySlug = (category: Category): string => {
+    return category.slug?.current || category._id;
+  };
+
+  // Initialize active category from URL or default to first category
+  const getInitialCategory = (): string => {
+    if (categoryParam) {
+      const category = categories.find(
+        (cat) => getCategorySlug(cat) === categoryParam
+      );
+      if (category) return getCategorySlug(category);
+    }
+    return categories[0] ? getCategorySlug(categories[0]) : "";
+  };
+
+  const [activeCategorySlug, setActiveCategorySlug] = useState<string>(
+    getInitialCategory()
   );
 
-  const filteredPhotos = photos.filter(
-    (photo) => photo.category?._id === activeCategoryId
-  );
+  // Update active category when URL changes (back/forward navigation)
+  useEffect(() => {
+    if (categoryParam) {
+      const category = categories.find(
+        (cat) => getCategorySlug(cat) === categoryParam
+      );
+      if (category) {
+        setActiveCategorySlug(getCategorySlug(category));
+      }
+    } else if (categories.length > 0) {
+      // If no category param, set to first category
+      setActiveCategorySlug(getCategorySlug(categories[0]));
+    }
+  }, [categoryParam, categories]);
+
+  const handleCategoryClick = (category: Category) => {
+    const slug = getCategorySlug(category);
+    setActiveCategorySlug(slug);
+    // Update URL with query parameter using slug
+    router.push(`/gallery?category=${slug}`, { scroll: false });
+  };
+
+  const filteredPhotos = photos.filter((photo) => {
+    if (!photo.category) return false;
+    const photoSlug = getCategorySlug(photo.category);
+    return photoSlug === activeCategorySlug;
+  });
 
   return (
     <div className="w-full">
       {/* Tabs */}
-      <div className="flex gap-4 border-b border-gray-300 pb-4 mb-8">
-        {categories.map((category) => (
-          <button
-            key={category._id}
-            onClick={() => setActiveCategoryId(category._id)}
-            className={`px-4 py-2 text-lg font-medium uppercase transition-colors ${
-              activeCategoryId === category._id
-                ? "text-black border-b-2 border-black"
-                : "text-gray-600 hover:text-black"
-            }`}
-          >
-            {category.title}
-          </button>
-        ))}
+      <div className="flex gap-4 pb-4 mb-8 justify-center">
+        {categories.map((category) => {
+          const categorySlug = getCategorySlug(category);
+          return (
+            <button
+              key={category._id}
+              onClick={() => handleCategoryClick(category)}
+              className={`cursor-pointer px-4 py-2 text-lg font-medium transition-colors ${
+                activeCategorySlug === categorySlug
+                  ? "text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+              style={{ fontFamily: 'var(--font-figtree), sans-serif' }}
+            >
+              {category.title}
+            </button>
+          );
+        })}
       </div>
 
       {/* Photo Grid */}
-      {filteredPhotos.length > 0 ? (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {filteredPhotos.map((photo) => {
-            const imageUrl = photo.image
-              ? urlFor(photo.image).width(800).height(800).url()
-              : null;
-            return (
-              <div key={photo._id} className="relative aspect-square w-full">
-                {imageUrl && (
-                  <Image
-                    src={imageUrl}
-                    alt={photo.title}
-                    fill
-                    className="object-cover"
-                  />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="text-center text-gray-600 py-12">
-          No photos found in this category.
-        </p>
-      )}
+      <GalleryGrid photos={filteredPhotos} />
     </div>
   );
 }
