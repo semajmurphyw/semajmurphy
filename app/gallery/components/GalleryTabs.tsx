@@ -88,10 +88,10 @@ export default function GalleryTabs({ photos, categories }: GalleryTabsProps) {
             <button
               key={category._id}
               onClick={() => handleCategoryClick(category)}
-              className={`cursor-pointer px-4 py-2 text-lg font-medium transition-colors ${
+              className={`cursor-pointer px-4 py-2 text-lg font-medium transition-all ${
                 activeCategorySlug === categorySlug
-                  ? "text-white"
-                  : "text-gray-400 hover:text-white"
+                  ? "text-white underline"
+                  : "text-white hover:underline"
               }`}
               style={{ fontFamily: 'var(--font-figtree), sans-serif' }}
             >

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { client } from "@/sanity/lib/client";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import VideoTabs from "./components/VideoTabs";
+import ProjectTabs from "./components/ProjectTabs";
 
 async function getBiography() {
   const biography = await client.fetch(
@@ -27,17 +27,19 @@ async function getSocialMediaLinks() {
   return links;
 }
 
-async function getVideos() {
-  const videos = await client.fetch(
-    `*[_type == "video"] | order(date desc){
+async function getProjects() {
+  const projects = await client.fetch(
+    `*[_type == "project"] | order(date desc){
       _id,
       title,
-      youtubeLink,
+      slug,
+      category,
       date,
-      category
+      releaseInfo,
+      credits
     }`
   );
-  return videos;
+  return projects;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -45,22 +47,22 @@ export async function generateMetadata(): Promise<Metadata> {
   const name = biography?.name || "";
   
   return {
-    title: `Videos | ${name}`,
-    description: `Watch videos featuring ${name}`,
+    title: `Selected Works | ${name}`,
+    description: `View selected works by ${name}`,
   };
 }
 
-export default async function VideoPage() {
+export default async function SelectedWorksPage() {
   const biography = await getBiography();
   const socialMediaLinks = await getSocialMediaLinks();
-  const videos = await getVideos();
+  const projects = await getProjects();
 
   return (
     <>
       <Navbar name={biography?.name} socialMediaLinks={socialMediaLinks} />
-      <main className="min-h-screen px-6 py-24 md:px-12 lg:px-24" style={{ backgroundColor: '#222222' }}>
+      <main className="min-h-screen" style={{ backgroundColor: '#222222' }}>
         <Suspense fallback={<div className="text-white">Loading...</div>}>
-          <VideoTabs videos={videos} />
+          <ProjectTabs projects={projects} />
         </Suspense>
       </main>
       <Footer name={biography?.name} socialMediaLinks={socialMediaLinks} />

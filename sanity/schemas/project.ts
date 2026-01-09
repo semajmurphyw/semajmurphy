@@ -12,6 +12,12 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: 'excerpt',
+      title: 'Excerpt',
+      type: 'text',
+      description: 'A brief description or summary of the project',
+    }),
+    defineField({
       name: 'slug',
       title: 'Slug',
       type: 'slug',

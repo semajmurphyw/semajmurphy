@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import ProjectList from "./ProjectList";
+import VerticalProjectSlider from "./VerticalProjectSlider";
 
 interface Project {
   _id: string;
@@ -31,6 +31,7 @@ const categoryDisplayNames: Record<string, string> = {
 export default function ProjectTabs({ projects }: ProjectTabsProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const categoryParam = searchParams.get("category");
 
   // Get unique categories from projects
@@ -61,9 +62,12 @@ export default function ProjectTabs({ projects }: ProjectTabsProps) {
   }, [categoryParam, uniqueCategories]);
 
   const handleCategoryClick = (category: string) => {
+    // Update state immediately for instant UI feedback
     setActiveCategory(category);
-    // Update URL with query parameter
-    router.push(`/projects?category=${category}`, { scroll: false });
+    // Update URL in a transition to prevent blocking
+    startTransition(() => {
+      router.replace(`/selected-works?category=${category}`, { scroll: false });
+    });
   };
 
   const filteredProjects = projects.filter((project) => {
@@ -71,9 +75,9 @@ export default function ProjectTabs({ projects }: ProjectTabsProps) {
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full h-screen flex flex-col">
       {/* Tabs */}
-      <div className="flex gap-4 pb-4 mb-8 justify-center">
+      <div className="flex gap-4 pb-4 pt-24 justify-center z-20 relative" style={{ backgroundColor: '#222222' }}>
         {uniqueCategories.map((category) => {
           const displayName =
             categoryDisplayNames[category] || category || "All";
@@ -81,10 +85,10 @@ export default function ProjectTabs({ projects }: ProjectTabsProps) {
             <button
               key={category}
               onClick={() => handleCategoryClick(category)}
-              className={`cursor-pointer px-4 py-2 text-lg font-medium transition-colors ${
+              className={`cursor-pointer px-4 py-2 text-lg font-medium transition-all ${
                 activeCategory === category
-                  ? "text-white"
-                  : "text-gray-400 hover:text-white"
+                  ? "text-white underline"
+                  : "text-white hover:underline"
               }`}
               style={{ fontFamily: 'var(--font-figtree), sans-serif' }}
             >
@@ -94,8 +98,10 @@ export default function ProjectTabs({ projects }: ProjectTabsProps) {
         })}
       </div>
 
-      {/* Project List */}
-      <ProjectList projects={filteredProjects} />
+      {/* Vertical Project Slider */}
+      <div className="flex-1 transition-opacity duration-200" style={{ opacity: isPending ? 0.7 : 1 }}>
+        <VerticalProjectSlider key={activeCategory} projects={filteredProjects} />
+      </div>
     </div>
   );
 }

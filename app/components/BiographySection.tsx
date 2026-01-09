@@ -7,6 +7,47 @@ interface BiographySectionProps {
   biography: any;
 }
 
+// Custom paragraph component with scroll-based opacity
+function ParagraphWithOpacity({ children }: { children: React.ReactNode }) {
+  const paragraphRef = useRef<HTMLParagraphElement>(null);
+  const [paragraphOpacity, setParagraphOpacity] = useState(0.35);
+
+  useEffect(() => {
+    const paragraph = paragraphRef.current;
+    if (!paragraph) return;
+
+    const handleScroll = () => {
+      const rect = paragraph.getBoundingClientRect();
+      const viewportHeight = window.innerHeight;
+      const viewportCenter = viewportHeight / 2;
+      
+      // Calculate distance from paragraph center to viewport center
+      const paragraphCenter = rect.top + rect.height / 2;
+      const distanceFromCenter = Math.abs(paragraphCenter - viewportCenter);
+      
+      // When paragraph is centered (within 200px of viewport center), opacity = 1
+      // Otherwise, opacity = 0.35
+      // Smooth transition based on distance
+      const maxDistance = viewportHeight * 0.4; // Start fading at 40% of viewport height from center
+      const opacity = Math.max(0.35, Math.min(1, 1 - (distanceFromCenter / maxDistance) * 0.65));
+      
+      setParagraphOpacity(opacity);
+    };
+
+    // Initial check
+    handleScroll();
+    
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <p ref={paragraphRef} style={{ opacity: paragraphOpacity }}>
+      {children}
+    </p>
+  );
+}
+
 export default function BiographySection({ biography }: BiographySectionProps) {
   const [opacity, setOpacity] = useState(0.5);
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -43,6 +84,15 @@ export default function BiographySection({ biography }: BiographySectionProps) {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Custom components for PortableText to wrap paragraphs
+  const portableTextComponents = {
+    block: {
+      normal: ({ children }: any) => {
+        return <ParagraphWithOpacity>{children}</ParagraphWithOpacity>;
+      },
+    },
+  };
+
   return (
     <div 
       ref={sectionRef}
@@ -55,7 +105,7 @@ export default function BiographySection({ biography }: BiographySectionProps) {
           className="text-white text-lg leading-relaxed [&_p]:mb-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mb-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mb-2 [&_strong]:font-bold [&_em]:italic [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:mb-4 [&_li]:mb-2"
           style={{ opacity }}
         >
-          <PortableText value={biography} />
+          <PortableText value={biography} components={portableTextComponents} />
         </div>
       </div>
     </div>

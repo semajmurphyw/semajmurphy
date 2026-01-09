@@ -33,7 +33,7 @@ export default function ProjectList({ projects }: ProjectListProps) {
       {projects.map((project) => {
         return (
           <div key={project._id} className="w-full">
-            <Link href={`/projects/${project.slug.current}`}>
+            <Link href={`/selected-works/${project.slug.current}`}>
               <h2 className="text-white text-3xl md:text-4xl font-bold mb-6 hover:underline transition-all cursor-pointer">
                 {project.title}
               </h2>

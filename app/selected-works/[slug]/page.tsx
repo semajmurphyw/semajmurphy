@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { client } from "@/sanity/lib/client";
 import { PortableText } from "@portabletext/react";
 import Image from "next/image";
+import Link from "next/link";
 import { urlFor } from "@/sanity/lib/image";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -63,13 +64,13 @@ export async function generateMetadata({
   
   if (!project) {
     return {
-      title: `Project | ${name}`,
+      title: `Selected Work | ${name}`,
     };
   }
   
   return {
     title: `${project.title} | ${name}`,
-    description: `Project: ${project.title} by ${name}`,
+    description: `Selected Work: ${project.title} by ${name}`,
   };
 }
 
@@ -157,10 +158,16 @@ export default async function ProjectPage({
   return (
     <>
       <Navbar name={biography?.name} socialMediaLinks={socialMediaLinks} />
-      <main className="min-h-screen px-6 py-24 md:px-12 lg:px-24" style={{ backgroundColor: '#222222' }}>
-        <div className="max-w-full mx-auto w-full flex gap-8">
+      <main className="min-h-screen pb-24" style={{ backgroundColor: '#222222' }}>
+        <div className="w-full flex">
           {/* Left Side - Content (67vw) */}
-          <div className="w-[67vw] flex-shrink-0">
+          <div className="w-[67vw] flex-shrink-0 pt-48 pb-48 px-6 md:px-12 lg:px-24">
+            <Link href="/selected-works" className="inline-block mb-4">
+              <p className="text-white text-sm hover:underline flex items-center gap-2">
+                <span>←</span>
+                <span>selected works</span>
+              </p>
+            </Link>
             <h1 className="text-white text-4xl md:text-5xl font-bold mb-8">
               {project.title}
             </h1>
@@ -174,16 +181,16 @@ export default async function ProjectPage({
             {project.collaborators && project.collaborators.length > 0 && (
               <div className="mt-12">
                 <h2 className="text-white text-2xl md:text-3xl font-bold mb-8">Collaborators</h2>
-                <div className="flex flex-wrap gap-8">
+                <div className="flex flex-col gap-6">
                   {project.collaborators.map((collaborator: any, index: number) => {
                     const imageUrl = collaborator.image
                       ? urlFor(collaborator.image).width(200).height(200).url()
                       : null;
                     
                     return (
-                      <div key={index} className="flex flex-col items-start">
+                      <div key={index} className="flex flex-row items-center gap-4">
                         {imageUrl ? (
-                          <div className="relative w-24 h-24 md:w-32 md:h-32 mb-3">
+                          <div className="relative w-16 h-16 md:w-20 md:h-20 flex-shrink-0">
                             <Image
                               src={imageUrl}
                               alt={collaborator.title || "Collaborator"}
@@ -192,8 +199,8 @@ export default async function ProjectPage({
                             />
                           </div>
                         ) : (
-                          <div className="w-24 h-24 md:w-32 md:h-32 mb-3 rounded-full bg-gray-600 flex items-center justify-center">
-                            <span className="text-white text-2xl font-semibold">
+                          <div className="w-16 h-16 md:w-20 md:h-20 flex-shrink-0 rounded-full bg-gray-600 flex items-center justify-center">
+                            <span className="text-white text-lg font-semibold">
                               {collaborator.title?.[0]?.toUpperCase() || "?"}
                             </span>
                           </div>
@@ -209,9 +216,9 @@ export default async function ProjectPage({
             )}
           </div>
 
-          {/* Right Side - Sticky Main Image (33vw) */}
-          {mainImageUrl && (
-            <div className="w-[33vw] sticky top-0 h-screen flex items-center">
+          {/* Right Side - Sticky Main Image (33vw, 100vh) */}
+          {mainImageUrl ? (
+            <div className="w-[33vw] flex-shrink-0 sticky top-0" style={{ height: '100vh' }}>
               <div className="relative w-full h-full">
                 <Image
                   src={mainImageUrl}
@@ -221,6 +228,8 @@ export default async function ProjectPage({
                 />
               </div>
             </div>
+          ) : (
+            <div className="w-[33vw] flex-shrink-0" />
           )}
         </div>
       </main>

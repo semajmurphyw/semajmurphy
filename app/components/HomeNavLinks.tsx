@@ -17,10 +17,10 @@ export default function HomeNavLinks({ biography }: HomeNavLinksProps) {
   useEffect(() => {
     // Trigger animation on mount
     setIsAnimated(true);
-    // All animations complete after longest delay (0.4s) + duration (0.6s) = 1s
+    // Animation completes after duration (0.6s)
     const timer = setTimeout(() => {
       setAnimationsComplete(true);
-    }, 1000);
+    }, 600);
     return () => clearTimeout(timer);
   }, []);
 
@@ -28,12 +28,14 @@ export default function HomeNavLinks({ biography }: HomeNavLinksProps) {
     if (!biography?.biography) return;
 
     const handleScroll = () => {
-      // Check if we've scrolled past 100vh (past the one-liner section)
+      // Check scroll position relative to bio section entry
       const scrollY = window.scrollY || window.pageYOffset;
       const viewportHeight = window.innerHeight;
       
-      // Bio section starts at 100vh, so check if we've scrolled past that point
-      setIsBioVisible(scrollY >= viewportHeight);
+      // Bio section starts at 100vh (after one-liner section)
+      // Trigger when bio section is 50% scrolled into view = 100vh + 50vh = 150vh
+      const fadeStartPoint = viewportHeight * 1.5;
+      setIsBioVisible(scrollY >= fadeStartPoint);
     };
 
     // Check on mount and on scroll
@@ -47,30 +49,37 @@ export default function HomeNavLinks({ biography }: HomeNavLinksProps) {
 
   const navItems = [
     { href: "/about", label: "About", isLink: true },
-    { href: "/video", label: "Videos", isLink: true },
-    { href: "/projects", label: "Projects", isLink: true },
-    { href: "#", label: "Press", isLink: false },
+    { href: "/selected-works", label: "Selected Works", isLink: true },
     { href: "/gallery", label: "Gallery", isLink: true },
   ];
 
   return (
     <nav className="absolute bottom-0 right-0 z-10 flex flex-col items-end gap-4 p-6 md:p-8">
       {navItems.map((item, index) => {
-        const delay = index * 0.1; // Stagger delay: 0s, 0.1s, 0.2s, 0.3s, 0.4s
         const shouldReduceOpacity = index > 0 && isBioVisible;
         
-        const className = `text-2xl font-medium uppercase text-white drop-shadow-lg transition-opacity duration-300 hover:underline md:text-3xl ${
-          animationsComplete && shouldReduceOpacity ? "!opacity-50" : ""
-        }`;
+        const className = `text-2xl font-medium uppercase text-white drop-shadow-lg transition-opacity duration-300 hover:underline md:text-3xl`;
         
-        // Calculate opacity: start hidden, then after animation completes control based on bio visibility
-        const opacity = !isAnimated ? 0 : undefined;  // Start hidden, then let animation handle it
+        // Calculate opacity based on animation state and bio visibility
+        let opacity: number | undefined = undefined;
+        let animationStyle: React.CSSProperties = {};
+        
+        if (!isAnimated) {
+          // Start hidden before animation
+          opacity = 0;
+        } else if (!animationsComplete) {
+          // During animation, let CSS animation handle opacity (all items animate together)
+          animationStyle = {
+            animation: `fadeIn 0.6s ease-out forwards`
+          };
+        } else {
+          // After animation completes, use inline opacity for smooth transitions
+          opacity = shouldReduceOpacity ? 0.5 : 1;
+        }
         
         const style: React.CSSProperties = { 
           ...(opacity !== undefined && { opacity }),
-          ...(isAnimated && {
-            animation: `fadeIn 0.6s ease-out ${delay}s forwards`
-          })
+          ...animationStyle
         };
 
         if (item.isLink) {
