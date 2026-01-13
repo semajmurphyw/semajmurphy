@@ -27,7 +27,7 @@ export default function DownloadEPKButton({ epkUrl }: DownloadEPKButtonProps) {
   return (
     <button
       onClick={handleDownload}
-      className="text-white text-5xl md:text-6xl lg:text-6xl font-bold leading-tight hover:underline cursor-pointer text-right"
+      className="text-white text-2xl md:text-6xl lg:text-6xl font-bold leading-tight hover:underline cursor-pointer text-center md:text-right"
     >
       download epk
     </button>

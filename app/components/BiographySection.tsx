@@ -155,7 +155,7 @@ export default function BiographySection({ biography, epkUrl }: BiographySection
     <div 
       ref={sectionRef}
       id="bio"
-      className="relative w-[45vw] min-h-screen z-10" 
+      className="relative w-full md:w-[45vw] min-h-screen z-10 mt-[100vh] md:mt-0" 
       style={{ backgroundColor: '#222222' }}
       data-bio-section
     >
@@ -167,7 +167,7 @@ export default function BiographySection({ biography, epkUrl }: BiographySection
           <PortableText value={biography} components={portableTextComponents} />
         </div>
         {epkUrl && (
-          <div ref={buttonRef} style={{ marginTop: '25vh', marginBottom: '25vh', opacity: buttonOpacity }}>
+          <div ref={buttonRef} className="mt-0 mb-0 md:mt-[25vh] md:mb-[25vh]" style={{ opacity: buttonOpacity }}>
             <DownloadEPKButton epkUrl={epkUrl} />
           </div>
         )}

@@ -34,41 +34,69 @@ function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseS
       if (!imageRef.current) return;
 
       const rect = imageRef.current.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportCenter = viewportWidth / 2;
-      const imageCenter = rect.left + rect.width / 2;
+      const isMobile = window.innerWidth < 768;
       
-      // Calculate distance from viewport center
-      const distanceFromCenter = Math.abs(imageCenter - viewportCenter);
-      
-      // Maximum distance for scaling (half of viewport width)
-      const maxDistance = viewportWidth * 0.5;
-      
-      // Scale from 1.5 (center) to 1.0 (far from center)
-      // Closer to center = larger scale
-      const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
-      const newScale = 1.5 - (normalizedDistance * 0.5); // 1.5 at center, 1.0 at edge
-      
-      setScale(newScale);
+      if (isMobile) {
+        // Mobile: Calculate based on vertical position
+        const viewportHeight = window.innerHeight;
+        const viewportCenter = viewportHeight / 2;
+        const imageCenter = rect.top + rect.height / 2;
+        
+        // Calculate distance from viewport center
+        const distanceFromCenter = Math.abs(imageCenter - viewportCenter);
+        
+        // Maximum distance for scaling (half of viewport height)
+        const maxDistance = viewportHeight * 0.5;
+        
+        // Scale from 1.5 (center) to 1.0 (far from center)
+        const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
+        const newScale = 1.5 - (normalizedDistance * 0.5);
+        
+        setScale(newScale);
+      } else {
+        // Desktop: Calculate based on horizontal position
+        const viewportWidth = window.innerWidth;
+        const viewportCenter = viewportWidth / 2;
+        const imageCenter = rect.left + rect.width / 2;
+        
+        // Calculate distance from viewport center
+        const distanceFromCenter = Math.abs(imageCenter - viewportCenter);
+        
+        // Maximum distance for scaling (half of viewport width)
+        const maxDistance = viewportWidth * 0.5;
+        
+        // Scale from 1.5 (center) to 1.0 (far from center)
+        const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
+        const newScale = 1.5 - (normalizedDistance * 0.5);
+        
+        setScale(newScale);
+      }
     };
 
     // Initial calculation
     const timeout = setTimeout(handleScroll, 100);
     
-    // Find the horizontal scroll container (parent with overflow-x-auto)
-    const scrollContainer = imageRef.current?.closest('.overflow-x-auto') as HTMLElement;
+    // Find scroll containers
+    const horizontalScrollContainer = imageRef.current?.closest('.overflow-x-auto') as HTMLElement;
+    const verticalScrollContainer = imageRef.current?.closest('.overflow-y-auto') as HTMLElement;
     
-    if (scrollContainer) {
-      scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+    if (horizontalScrollContainer) {
+      horizontalScrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+    }
+    if (verticalScrollContainer) {
+      verticalScrollContainer.addEventListener("scroll", handleScroll, { passive: true });
     }
     
-    // Also listen to window scroll for vertical scrolling
+    // Also listen to window scroll
     window.addEventListener("scroll", handleScroll, { passive: true });
     
     return () => {
       clearTimeout(timeout);
-      if (scrollContainer) {
-        scrollContainer.removeEventListener("scroll", handleScroll);
+      if (horizontalScrollContainer) {
+        horizontalScrollContainer.removeEventListener("scroll", handleScroll);
+      }
+      if (verticalScrollContainer) {
+        verticalScrollContainer.removeEventListener("scroll", handleScroll);
       }
       window.removeEventListener("scroll", handleScroll);
     };
@@ -85,7 +113,7 @@ function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseS
   return (
     <div
       ref={imageRef}
-      className="group flex flex-col flex-shrink-0"
+      className="group flex flex-col flex-shrink-0 items-center md:items-start"
       style={{
         transform: `scale(${scale})`,
         transformOrigin: 'center center',
@@ -94,15 +122,15 @@ function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseS
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Title above image - only visible on hover */}
-      <div className="text-white text-left mb-2 opacity-0 group-hover:opacity-100 transition-none">
+      {/* Title above image - only visible on hover, hidden on mobile */}
+      <div className="hidden md:block text-white text-left mb-2 opacity-0 group-hover:opacity-100 transition-none">
         <h3 className="text-lg font-semibold">
           {item.photo.title}
         </h3>
       </div>
       
       {/* Image */}
-      <div className="relative overflow-hidden cursor-pointer" style={{ width: `${imageWidth}px`, height: `${imageHeight}px` }}>
+      <div className="relative overflow-hidden cursor-pointer max-w-[100vw] md:max-w-none" style={{ width: `${imageWidth}px`, height: `${imageHeight}px` }}>
         {imageUrl && (
           <Image
             src={imageUrl}
@@ -113,9 +141,9 @@ function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseS
         )}
       </div>
       
-      {/* Date below image - only visible on hover */}
+      {/* Date below image - only visible on hover, hidden on mobile */}
       {item.photo.date && (
-        <div className="text-white text-left mt-2 opacity-0 group-hover:opacity-100 transition-none">
+        <div className="hidden md:block text-white text-left mt-2 opacity-0 group-hover:opacity-100 transition-none">
           <p className="text-sm">
             {new Date(item.photo.date).toLocaleDateString('en-US', {
               year: 'numeric',
@@ -188,14 +216,29 @@ export default function GalleryGrid({ photos }: GalleryGridProps) {
     );
   }
 
-  const baseSize = 250; // Base size for images
+  const [baseSize, setBaseSize] = useState(250); // Base size for images
   const gap = 60; // Gap between images
 
+  // Update base size based on screen size
+  useEffect(() => {
+    const updateBaseSize = () => {
+      if (window.innerWidth < 768) {
+        setBaseSize(200); // Smaller on mobile
+      } else {
+        setBaseSize(250); // Normal on desktop
+      }
+    };
+
+    updateBaseSize();
+    window.addEventListener("resize", updateBaseSize);
+    return () => window.removeEventListener("resize", updateBaseSize);
+  }, []);
+
   return (
-    <div ref={containerRef} className="h-full flex items-center relative" style={{ minWidth: 'max-content' }}>
-      {/* Gallery text in left buffer */}
+    <div ref={containerRef} className="h-full md:h-full flex flex-col md:flex-row items-start md:items-center relative md:min-w-max">
+      {/* Gallery text in left buffer - Hidden on mobile */}
       <div
-        className="absolute left-0 flex items-center h-full"
+        className="hidden md:flex absolute left-0 items-center h-full"
         style={{
           width: '40vw',
           paddingLeft: '6rem',
@@ -207,12 +250,9 @@ export default function GalleryGrid({ photos }: GalleryGridProps) {
       </div>
       
       <div
-        className="flex items-center h-full"
+        className="flex flex-col md:flex-row items-center md:items-center h-full md:h-full w-full md:w-max px-6 pt-10 pb-4 md:py-0 gallery-images-desktop"
         style={{
           gap: `${gap}px`,
-          width: 'max-content',
-          paddingLeft: '40vw',
-          paddingRight: '40vw',
         }}
       >
         {gridItems.map((item) => {

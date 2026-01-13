@@ -38,7 +38,7 @@ export default function OneLinerSection({ oneLiner }: OneLinerSectionProps) {
   return (
     <div 
       ref={sectionRef}
-      className="relative w-[50vw] h-screen bg-transparent z-10 flex items-end"
+      className="hidden md:flex relative w-[50vw] h-screen bg-transparent z-10 items-end"
     >
       <div className="p-6 md:p-8 max-h-[50vh] overflow-y-auto">
         <p 

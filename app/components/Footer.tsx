@@ -55,7 +55,7 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer ref={footerRef} className="relative flex w-full items-end justify-between p-6 md:p-8 min-h-[200px]" style={{ backgroundColor: '#222222' }}>
+    <footer ref={footerRef} className="relative flex flex-col md:flex-row w-full items-start md:items-end justify-between p-6 md:p-8 min-h-[200px] gap-6 md:gap-0" style={{ backgroundColor: '#222222' }}>
       {/* Navigation Links - Left Side */}
       <nav className="flex flex-col items-start gap-2 md:gap-4">
         {[
@@ -117,7 +117,7 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
       </nav>
 
       {/* Name, Social Media, and Copyright - Right Side */}
-      <div className="flex flex-col items-end gap-4">
+      <div className="flex flex-col items-start md:items-end gap-4">
         {name && (
           <h2 className="text-xl font-semibold text-white drop-shadow-lg md:text-2xl lg:text-3xl">
             {name}

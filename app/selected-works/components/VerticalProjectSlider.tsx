@@ -83,8 +83,8 @@ export default function VerticalProjectSlider({ projects }: VerticalProjectSlide
 
   return (
     <div className="flex h-full relative">
-      {/* Dot Indicators - Left Side */}
-      <div className="fixed left-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-3">
+      {/* Dot Indicators - Right Side on Mobile, Left Side on Desktop */}
+      <div className="fixed right-4 md:right-auto md:left-4 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-3">
         {projects.map((_, index) => (
           <button
             key={index}
@@ -104,7 +104,7 @@ export default function VerticalProjectSlider({ projects }: VerticalProjectSlide
       </div>
 
       {/* Images Container - Fade in/out based on active index */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="hidden md:block absolute inset-0 z-0 pointer-events-none">
         {projects.map((project, index) => {
           const imageUrl = project.mainImage
             ? urlFor(project.mainImage).width(1200).url()
@@ -151,18 +151,30 @@ export default function VerticalProjectSlider({ projects }: VerticalProjectSlide
                 initial={{ opacity: 0, y: 50 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
-                className="absolute top-1/2 left-[calc(50%-32vw)] z-20 max-w-4xl"
-                style={{ transform: 'translateY(calc(-50% + 25vh))', textAlign: 'left' }}
+                className="absolute top-[15vh] md:top-1/2 left-6 md:left-[calc(50%-32vw)] z-20 max-w-[80vw] md:max-w-4xl pb-[20vh] md:pb-0 slide-content-desktop"
+                style={{ transform: 'translateY(0)', textAlign: 'left' }}
               >
                 <Link href={`/selected-works/${project.slug.current}`}>
-                  <h2 className="text-white text-5xl md:text-6xl lg:text-7xl font-bold mb-6 hover:underline transition-all cursor-pointer leading-tight">
+                  <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold mb-6 hover:underline transition-all cursor-pointer leading-tight">
                     {project.title}
                   </h2>
                 </Link>
                 {project.excerpt && (
-                  <p className="text-white text-lg leading-relaxed text-left">
+                  <p className="text-white text-sm md:text-lg leading-relaxed text-left mb-4">
                     {project.excerpt}
                   </p>
+                )}
+                {/* Mobile-only main image */}
+                {project.mainImage && (
+                  <div className="md:hidden mt-4">
+                    <Image
+                      src={urlFor(project.mainImage).width(800).url()}
+                      alt={project.title}
+                      width={800}
+                      height={600}
+                      className="max-w-[80vw] h-auto"
+                    />
+                  </div>
                 )}
               </motion.div>
             </div>

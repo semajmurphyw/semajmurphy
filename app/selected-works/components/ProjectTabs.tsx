@@ -77,7 +77,7 @@ export default function ProjectTabs({ projects }: ProjectTabsProps) {
   return (
     <div className="w-full relative">
       {/* Tabs */}
-      <div className="absolute bottom-0 left-0 flex gap-4 pb-6 pl-6 z-20 bg-transparent">
+      <div className="absolute bottom-0 left-0 flex flex-wrap gap-4 pb-[20vh] md:pb-6 pl-6 z-30 bg-transparent">
         {uniqueCategories.map((category) => {
           const displayName =
             categoryDisplayNames[category] || category || "All";

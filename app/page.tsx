@@ -70,7 +70,7 @@ export default async function Home() {
               src={backgroundImageUrl}
               alt="Background"
               fill
-              className="object-cover"
+              className="object-cover object-[60%_center] md:object-center"
               priority
             />
           </div>

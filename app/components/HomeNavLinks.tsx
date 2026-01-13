@@ -60,7 +60,7 @@ export default function HomeNavLinks({ biography }: HomeNavLinksProps) {
   ];
 
   return (
-    <nav className="absolute bottom-0 right-0 z-10 flex flex-col items-end gap-4 p-6 md:p-8">
+    <nav className="absolute bottom-[20vh] left-0 md:bottom-0 md:left-auto md:right-0 z-10 flex flex-col items-start md:items-end gap-4 p-6 md:p-8">
       {navItems.map((item, index) => {
         const shouldReduceOpacity = index > 0 && isBioVisible;
         

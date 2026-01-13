@@ -79,30 +79,38 @@ export default function GalleryTabs({ photos, categories }: GalleryTabsProps) {
   });
 
   return (
-    <div className="w-full h-screen relative overflow-hidden">
-      {/* Tabs */}
-      <div className="absolute bottom-0 left-0 flex gap-4 pb-6 pl-6 z-20 bg-transparent">
-        {categories.map((category) => {
-          const categorySlug = getCategorySlug(category);
-          return (
-            <button
-              key={category._id}
-              onClick={() => handleCategoryClick(category)}
-              className={`cursor-pointer px-4 py-2 text-lg font-medium transition-all ${
-                activeCategorySlug === categorySlug
-                  ? "text-white underline"
-                  : "text-white hover:underline"
-              }`}
-              style={{ fontFamily: 'var(--font-figtree), sans-serif' }}
-            >
-              {category.title}
-            </button>
-          );
-        })}
-      </div>
+    <div className="w-full h-screen md:h-screen relative overflow-hidden flex flex-col md:block">
+      {/* Photo Grid Container - Scrollable on Mobile */}
+      <div className="flex-1 md:h-full overflow-y-auto md:overflow-x-auto md:overflow-y-hidden">
+        {/* Gallery text - Mobile only, scrolls with content */}
+        <div className="md:hidden px-6 pt-[40vh] pb-0">
+          <h2 className="text-white text-4xl md:text-6xl lg:text-7xl font-bold leading-tight">
+            gallery
+          </h2>
+        </div>
+        
+        {/* Tabs - Mobile scrolls with content, Desktop fixed */}
+        <div className="flex flex-wrap gap-2 md:gap-4 px-6 pr-12 pt-2 pb-8 md:pr-6 md:pt-6 md:absolute md:bottom-0 md:left-0 md:pb-6 md:pl-6 z-[1001] bg-transparent">
+          {categories.map((category) => {
+            const categorySlug = getCategorySlug(category);
+            return (
+              <button
+                key={category._id}
+                onClick={() => handleCategoryClick(category)}
+                className={`cursor-pointer px-0 py-1.5 md:px-4 md:py-2 text-sm md:text-lg font-medium transition-all ${
+                  activeCategorySlug === categorySlug
+                    ? "text-white underline"
+                    : "text-white hover:underline"
+                }`}
+                style={{ fontFamily: 'var(--font-figtree), sans-serif' }}
+              >
+                {category.title}
+              </button>
+            );
+          })}
+        </div>
 
-      {/* Photo Grid - Horizontal Scroll */}
-      <div className="h-full overflow-x-auto overflow-y-hidden">
+        {/* Photo Grid */}
         <GalleryGrid photos={filteredPhotos} />
       </div>
     </div>

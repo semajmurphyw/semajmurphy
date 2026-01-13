@@ -161,7 +161,7 @@ export default async function ProjectPage({
       <main className="min-h-screen pb-24" style={{ backgroundColor: '#222222' }}>
         <div className="w-full flex">
           {/* Left Side - Content (67vw) */}
-          <div className="w-[67vw] flex-shrink-0 pt-48 pb-48 px-6 md:px-12 lg:px-24">
+          <div className="w-full md:w-[67vw] flex-shrink-0 pt-48 pb-48 px-6 md:px-12 lg:px-24">
             <Link href="/selected-works" className="inline-block mb-4">
               <p className="text-white text-sm hover:underline flex items-center gap-2">
                 <span>←</span>
@@ -218,7 +218,7 @@ export default async function ProjectPage({
 
           {/* Right Side - Sticky Main Image (33vw, 100vh) */}
           {mainImageUrl ? (
-            <div className="w-[33vw] flex-shrink-0 sticky top-0" style={{ height: '100vh' }}>
+            <div className="hidden md:block w-[33vw] flex-shrink-0 sticky top-0" style={{ height: '100vh' }}>
               <div className="relative w-full h-full">
                 <Image
                   src={mainImageUrl}
@@ -229,7 +229,7 @@ export default async function ProjectPage({
               </div>
             </div>
           ) : (
-            <div className="w-[33vw] flex-shrink-0" />
+            <div className="hidden md:block w-[33vw] flex-shrink-0" />
           )}
         </div>
       </main>

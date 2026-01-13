@@ -68,3 +68,15 @@ p {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* Desktop transform for slide content */
+@media (min-width: 768px) {
+  .slide-content-desktop {
+    transform: translateY(calc(-50% + 25vh)) !important;
+  }
+  
+  .gallery-images-desktop {
+    padding-left: 40vw !important;
+    padding-right: 40vw !important;
+  }
+}
