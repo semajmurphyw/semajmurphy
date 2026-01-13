@@ -23,12 +23,118 @@ interface GridItem {
   aspectRatio: number;
 }
 
+// Individual image component with scroll-based scaling
+function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseSize: number; gap: number; imageUrl: string | null }) {
+  const imageRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [isHovered, setIsHovered] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!imageRef.current) return;
+
+      const rect = imageRef.current.getBoundingClientRect();
+      const viewportWidth = window.innerWidth;
+      const viewportCenter = viewportWidth / 2;
+      const imageCenter = rect.left + rect.width / 2;
+      
+      // Calculate distance from viewport center
+      const distanceFromCenter = Math.abs(imageCenter - viewportCenter);
+      
+      // Maximum distance for scaling (half of viewport width)
+      const maxDistance = viewportWidth * 0.5;
+      
+      // Scale from 1.5 (center) to 1.0 (far from center)
+      // Closer to center = larger scale
+      const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
+      const newScale = 1.5 - (normalizedDistance * 0.5); // 1.5 at center, 1.0 at edge
+      
+      setScale(newScale);
+    };
+
+    // Initial calculation
+    const timeout = setTimeout(handleScroll, 100);
+    
+    // Find the horizontal scroll container (parent with overflow-x-auto)
+    const scrollContainer = imageRef.current?.closest('.overflow-x-auto') as HTMLElement;
+    
+    if (scrollContainer) {
+      scrollContainer.addEventListener("scroll", handleScroll, { passive: true });
+    }
+    
+    // Also listen to window scroll for vertical scrolling
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    
+    return () => {
+      clearTimeout(timeout);
+      if (scrollContainer) {
+        scrollContainer.removeEventListener("scroll", handleScroll);
+      }
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const sizeVariation = (item.photo._id.charCodeAt(0) % 3) * 50;
+  const imageWidth = baseSize + sizeVariation;
+  const imageHeight = imageWidth / item.aspectRatio;
+
+  // Calculate z-index based on scale (higher scale = higher z-index)
+  // When hovered, set z-index much higher to appear above all others
+  const zIndex = isHovered ? 1000 : Math.round(scale * 100);
+
+  return (
+    <div
+      ref={imageRef}
+      className="group flex flex-col flex-shrink-0"
+      style={{
+        transform: `scale(${scale})`,
+        transformOrigin: 'center center',
+        zIndex: zIndex,
+      }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Title above image - only visible on hover */}
+      <div className="text-white text-left mb-2 opacity-0 group-hover:opacity-100 transition-none">
+        <h3 className="text-lg font-semibold">
+          {item.photo.title}
+        </h3>
+      </div>
+      
+      {/* Image */}
+      <div className="relative overflow-hidden cursor-pointer" style={{ width: `${imageWidth}px`, height: `${imageHeight}px` }}>
+        {imageUrl && (
+          <Image
+            src={imageUrl}
+            alt={item.photo.title}
+            fill
+            className="object-cover"
+          />
+        )}
+      </div>
+      
+      {/* Date below image - only visible on hover */}
+      {item.photo.date && (
+        <div className="text-white text-left mt-2 opacity-0 group-hover:opacity-100 transition-none">
+          <p className="text-sm">
+            {new Date(item.photo.date).toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+            })}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function GalleryGrid({ photos }: GalleryGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [gridItems, setGridItems] = useState<GridItem[]>([]);
   const [columns, setColumns] = useState(12);
 
-  // Calculate aspect ratios and generate layout
+  // Calculate aspect ratios
   useEffect(() => {
     if (photos.length === 0) return;
 
@@ -39,77 +145,18 @@ export default function GalleryGrid({ photos }: GalleryGridProps) {
       return 1;
     };
 
-    // Generate layout with better space filling
-    const generateLayout = (): GridItem[] => {
-      const items: GridItem[] = [];
-      
-      // Calculate optimal spans based on aspect ratio
-      photos.forEach((photo, index) => {
-        const aspectRatio = calculateAspectRatio(photo.image);
-        
-        // Start with a base size and adjust based on aspect ratio
-        // Use a variety of sizes but optimize for space filling
-        let colSpan: number;
-        let rowSpan: number;
-        
-        // Determine base size pattern (creates variety)
-        const patternType = index % 6;
-        
-        if (aspectRatio > 1.5) {
-          // Very wide images
-          colSpan = patternType < 2 ? 5 : patternType < 4 ? 4 : 6;
-          rowSpan = patternType < 2 ? 2 : patternType < 4 ? 3 : 2;
-        } else if (aspectRatio > 1.2) {
-          // Wide images
-          colSpan = patternType < 2 ? 4 : patternType < 4 ? 3 : 5;
-          rowSpan = patternType < 2 ? 3 : patternType < 4 ? 2 : 3;
-        } else if (aspectRatio < 0.7) {
-          // Very tall images
-          colSpan = patternType < 2 ? 2 : patternType < 4 ? 3 : 2;
-          rowSpan = patternType < 2 ? 5 : patternType < 4 ? 4 : 6;
-        } else if (aspectRatio < 0.85) {
-          // Tall images
-          colSpan = patternType < 2 ? 3 : patternType < 4 ? 2 : 3;
-          rowSpan = patternType < 2 ? 4 : patternType < 4 ? 5 : 4;
-        } else {
-          // Square-ish images
-          colSpan = patternType < 2 ? 3 : patternType < 4 ? 4 : 2;
-          rowSpan = patternType < 2 ? 3 : patternType < 4 ? 4 : 2;
-        }
-        
-        // Fine-tune to better match aspect ratio
-        const currentRatio = colSpan / rowSpan;
-        const ratioDiff = Math.abs(aspectRatio - currentRatio);
-        
-        // If the ratio is significantly off, adjust
-        if (ratioDiff > 0.3) {
-          if (aspectRatio > currentRatio) {
-            // Need wider - increase colSpan or decrease rowSpan
-            if (colSpan < 6) colSpan++;
-            else if (rowSpan > 1) rowSpan--;
-          } else {
-            // Need taller - increase rowSpan or decrease colSpan
-            if (rowSpan < 6) rowSpan++;
-            else if (colSpan > 1) colSpan--;
-          }
-        }
-        
-        // Ensure reasonable bounds
-        colSpan = Math.max(1, Math.min(colSpan, 6));
-        rowSpan = Math.max(1, Math.min(rowSpan, 6));
+    // Generate items with aspect ratios
+    const items: GridItem[] = photos.map((photo) => {
+      const aspectRatio = calculateAspectRatio(photo.image);
+      return {
+        photo,
+        colSpan: 1, // Not used anymore
+        rowSpan: 1, // Not used anymore
+        aspectRatio,
+      };
+    });
 
-        items.push({
-          photo,
-          colSpan,
-          rowSpan,
-          aspectRatio,
-        });
-      });
-
-      return items;
-    };
-
-    setGridItems(generateLayout());
+    setGridItems(items);
   }, [photos]);
 
   // Update columns based on container width
@@ -141,15 +188,31 @@ export default function GalleryGrid({ photos }: GalleryGridProps) {
     );
   }
 
+  const baseSize = 250; // Base size for images
+  const gap = 60; // Gap between images
+
   return (
-    <div ref={containerRef} className="w-full">
+    <div ref={containerRef} className="h-full flex items-center relative" style={{ minWidth: 'max-content' }}>
+      {/* Gallery text in left buffer */}
       <div
-        className="grid items-start"
+        className="absolute left-0 flex items-center h-full"
         style={{
-          gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          gridAutoRows: "minmax(100px, auto)",
-          rowGap: "4px",
-          columnGap: "8px",
+          width: '40vw',
+          paddingLeft: '6rem',
+        }}
+      >
+        <h2 className="text-white text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+          gallery
+        </h2>
+      </div>
+      
+      <div
+        className="flex items-center h-full"
+        style={{
+          gap: `${gap}px`,
+          width: 'max-content',
+          paddingLeft: '40vw',
+          paddingRight: '40vw',
         }}
       >
         {gridItems.map((item) => {
@@ -161,53 +224,14 @@ export default function GalleryGrid({ photos }: GalleryGridProps) {
                 .url()
             : null;
 
-          // Calculate height to better preserve aspect ratio
-          // Use container width to calculate proper height
-          const baseCellHeight = 100;
-          // Calculate based on aspect ratio - this helps preserve proportions
-          // The width will be (colSpan / columns) * containerWidth
-          // Height should be width / aspectRatio
-          // For grid, we approximate using base cell size
-          const approximateWidth = baseCellHeight * item.colSpan;
-          const calculatedHeight = approximateWidth / item.aspectRatio;
-          // Ensure minimum height based on row span
-          const minHeight = Math.max(calculatedHeight, baseCellHeight * item.rowSpan);
-
           return (
-            <div
+            <GalleryImage
               key={item.photo._id}
-              className="group relative w-full overflow-hidden cursor-pointer"
-              style={{
-                gridColumn: `span ${item.colSpan}`,
-                gridRow: `span ${item.rowSpan}`,
-                height: `${minHeight}px`,
-              }}
-            >
-              {imageUrl && (
-                <Image
-                  src={imageUrl}
-                  alt={item.photo.title}
-                  fill
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
-                  sizes={`(max-width: 640px) ${(item.colSpan / 4) * 100}vw, (max-width: 1024px) ${(item.colSpan / 8) * 100}vw, ${(item.colSpan / 12) * 100}vw`}
-                />
-              )}
-              {/* Hover overlay */}
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex flex-col justify-end p-4 transform -translate-x-1/4 group-hover:translate-x-0 transition-all duration-150 ease-out">
-                <h3 className="text-white text-lg font-semibold mb-1">
-                  {item.photo.title}
-                </h3>
-                {item.photo.date && (
-                  <p className="text-white/90 text-sm">
-                    {new Date(item.photo.date).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                )}
-              </div>
-            </div>
+              item={item}
+              baseSize={baseSize}
+              gap={gap}
+              imageUrl={imageUrl}
+            />
           );
         })}
       </div>

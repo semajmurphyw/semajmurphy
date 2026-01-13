@@ -79,9 +79,9 @@ export default function GalleryTabs({ photos, categories }: GalleryTabsProps) {
   });
 
   return (
-    <div className="w-full">
+    <div className="w-full h-screen relative overflow-hidden">
       {/* Tabs */}
-      <div className="flex gap-4 pb-4 mb-8 justify-center">
+      <div className="absolute bottom-0 left-0 flex gap-4 pb-6 pl-6 z-20 bg-transparent">
         {categories.map((category) => {
           const categorySlug = getCategorySlug(category);
           return (
@@ -101,8 +101,10 @@ export default function GalleryTabs({ photos, categories }: GalleryTabsProps) {
         })}
       </div>
 
-      {/* Photo Grid */}
-      <GalleryGrid photos={filteredPhotos} />
+      {/* Photo Grid - Horizontal Scroll */}
+      <div className="h-full overflow-x-auto overflow-y-hidden">
+        <GalleryGrid photos={filteredPhotos} />
+      </div>
     </div>
   );
 }

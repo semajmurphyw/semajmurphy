@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { urlFor } from "@/sanity/lib/image";
 
 interface SocialMediaLink {
@@ -22,6 +23,9 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
   const displayLinks = socialMediaLinks?.slice(0, 2) || [];
   const [isInView, setIsInView] = useState(false);
   const footerRef = useRef<HTMLElement>(null);
+  const pathname = usePathname();
+  const router = useRouter();
+  const isHomePage = pathname === "/";
 
   useEffect(() => {
     const footerElement = footerRef.current;
@@ -55,7 +59,7 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
       {/* Navigation Links - Left Side */}
       <nav className="flex flex-col items-start gap-2 md:gap-4">
         {[
-          { href: "/about", label: "About", isLink: true },
+          { href: "/", label: "About", isLink: true },
           { href: "/selected-works", label: "Selected Works", isLink: true },
           { href: "/gallery", label: "Gallery", isLink: true },
         ].map((item, index) => {
@@ -69,12 +73,30 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
           };
 
           if (item.isLink) {
+            const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+              if (item.href === "/" && item.label === "About") {
+                e.preventDefault();
+                
+                // If on home page, scroll to bio section
+                if (isHomePage) {
+                  const bioSection = document.querySelector('[data-bio-section]');
+                  if (bioSection) {
+                    bioSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                } else {
+                  // If on another page, navigate to home with hash
+                  router.push("/#bio");
+                }
+              }
+            };
+
             return (
               <Link
                 key={item.label}
                 href={item.href}
                 className={baseClasses}
                 style={style}
+                onClick={handleClick}
               >
                 {item.label}
               </Link>

@@ -12,8 +12,8 @@ interface Project {
   };
   category: string;
   date: string;
-  releaseInfo: any;
-  credits: any;
+  excerpt?: string;
+  mainImage?: any;
 }
 
 interface ProjectTabsProps {
@@ -75,9 +75,9 @@ export default function ProjectTabs({ projects }: ProjectTabsProps) {
   });
 
   return (
-    <div className="w-full h-screen flex flex-col">
+    <div className="w-full relative">
       {/* Tabs */}
-      <div className="flex gap-4 pb-4 pt-24 justify-center z-20 relative" style={{ backgroundColor: '#222222' }}>
+      <div className="absolute bottom-0 left-0 flex gap-4 pb-6 pl-6 z-20 bg-transparent">
         {uniqueCategories.map((category) => {
           const displayName =
             categoryDisplayNames[category] || category || "All";
@@ -99,7 +99,7 @@ export default function ProjectTabs({ projects }: ProjectTabsProps) {
       </div>
 
       {/* Vertical Project Slider */}
-      <div className="flex-1 transition-opacity duration-200" style={{ opacity: isPending ? 0.7 : 1 }}>
+      <div className="h-screen transition-opacity duration-200" style={{ opacity: isPending ? 0.7 : 1 }}>
         <VerticalProjectSlider key={activeCategory} projects={filteredProjects} />
       </div>
     </div>

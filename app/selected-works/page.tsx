@@ -35,8 +35,8 @@ async function getProjects() {
       slug,
       category,
       date,
-      releaseInfo,
-      credits
+      excerpt,
+      mainImage
     }`
   );
   return projects;

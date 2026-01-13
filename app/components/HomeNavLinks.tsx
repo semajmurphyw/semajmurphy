@@ -28,27 +28,33 @@ export default function HomeNavLinks({ biography }: HomeNavLinksProps) {
     if (!biography?.biography) return;
 
     const handleScroll = () => {
-      // Check scroll position relative to bio section entry
-      const scrollY = window.scrollY || window.pageYOffset;
+      const bioSection = document.querySelector('[data-bio-section]');
+      if (!bioSection) return;
+
+      const rect = bioSection.getBoundingClientRect();
       const viewportHeight = window.innerHeight;
       
-      // Bio section starts at 100vh (after one-liner section)
-      // Trigger when bio section is 50% scrolled into view = 100vh + 50vh = 150vh
-      const fadeStartPoint = viewportHeight * 1.5;
-      setIsBioVisible(scrollY >= fadeStartPoint);
+      // Trigger when section top enters viewport from below with 100px buffer
+      // When scrolling down, rect.top decreases from > viewportHeight to <= viewportHeight
+      // Add 100px buffer so opacity doesn't change until section is 100px into viewport
+      const hasEntered = rect.top <= viewportHeight - 100;
+      setIsBioVisible(hasEntered);
     };
 
-    // Check on mount and on scroll
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    // Wait a bit for DOM to be ready, then check and set up listener
+    const timeout = setTimeout(() => {
+      handleScroll();
+      window.addEventListener("scroll", handleScroll, { passive: true });
+    }, 100);
 
     return () => {
+      clearTimeout(timeout);
       window.removeEventListener("scroll", handleScroll);
     };
   }, [biography]);
 
   const navItems = [
-    { href: "/about", label: "About", isLink: true },
+    { href: "/", label: "About", isLink: true },
     { href: "/selected-works", label: "Selected Works", isLink: true },
     { href: "/gallery", label: "Gallery", isLink: true },
   ];
@@ -58,7 +64,7 @@ export default function HomeNavLinks({ biography }: HomeNavLinksProps) {
       {navItems.map((item, index) => {
         const shouldReduceOpacity = index > 0 && isBioVisible;
         
-        const className = `text-2xl font-medium uppercase text-white drop-shadow-lg transition-opacity duration-300 hover:underline md:text-3xl`;
+        const className = `text-2xl font-medium uppercase text-white drop-shadow-lg transition-opacity duration-200 hover:underline md:text-3xl`;
         
         // Calculate opacity based on animation state and bio visibility
         let opacity: number | undefined = undefined;
@@ -83,12 +89,24 @@ export default function HomeNavLinks({ biography }: HomeNavLinksProps) {
         };
 
         if (item.isLink) {
+          // Handle About link click to scroll to biography section
+          const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+            if (item.href === "/" && item.label === "About") {
+              e.preventDefault();
+              const bioSection = document.querySelector('[data-bio-section]');
+              if (bioSection) {
+                bioSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }
+            }
+          };
+
           return (
               <Link
                 key={item.label}
                 href={item.href}
                 className={className}
                 style={style}
+                onClick={handleClick}
               >
                 {item.label}
               </Link>

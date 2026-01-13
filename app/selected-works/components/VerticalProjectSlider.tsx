@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { PortableText } from "@portabletext/react";
+import Image from "next/image";
 import { motion } from "framer-motion";
+import { urlFor } from "@/sanity/lib/image";
 
 interface Project {
   _id: string;
@@ -13,8 +14,8 @@ interface Project {
   };
   category: string;
   date: string;
-  releaseInfo: any;
-  credits: any;
+  excerpt?: string;
+  mainImage?: any;
 }
 
 interface VerticalProjectSliderProps {
@@ -102,6 +103,35 @@ export default function VerticalProjectSlider({ projects }: VerticalProjectSlide
         ))}
       </div>
 
+      {/* Images Container - Fade in/out based on active index */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        {projects.map((project, index) => {
+          const imageUrl = project.mainImage
+            ? urlFor(project.mainImage).width(1200).url()
+            : null;
+
+          if (!imageUrl) return null;
+
+          return (
+            <motion.div
+              key={project._id}
+              className="absolute top-1/2 right-[15%]"
+              style={{ transform: 'translateY(calc(-50% + 10vh))' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: activeIndex === index ? 1 : 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <img
+                src={imageUrl}
+                alt={project.title}
+                className="w-[30vw]"
+                style={{ height: 'auto', maxHeight: '80vh', display: 'block', objectFit: 'contain' }}
+              />
+            </motion.div>
+          );
+        })}
+      </div>
+
       {/* Slider Container */}
       <div
         ref={containerRef}
@@ -110,30 +140,34 @@ export default function VerticalProjectSlider({ projects }: VerticalProjectSlide
           scrollBehavior: "smooth",
         }}
       >
-        {projects.map((project, index) => (
-          <div
-            key={project._id}
-            className="h-full snap-start snap-always flex items-center px-6 md:px-12 lg:px-24"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="w-full max-w-4xl mx-auto"
+        {projects.map((project, index) => {
+          return (
+            <div
+              key={project._id}
+              className="h-full snap-start snap-always relative"
             >
-              <Link href={`/selected-works/${project.slug.current}`}>
-                <h2 className="text-white text-3xl md:text-4xl lg:text-5xl font-bold mb-6 hover:underline transition-all cursor-pointer">
-                  {project.title}
-                </h2>
-              </Link>
-              {project.credits && (
-                <div className="text-white text-lg leading-relaxed [&_p]:mb-4 [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mb-4 [&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-3 [&_h3]:text-xl [&_h3]:font-semibold [&_h3]:mb-2 [&_strong]:font-bold [&_em]:italic [&_ul]:list-disc [&_ul]:ml-6 [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:ml-6 [&_ol]:mb-4 [&_li]:mb-2">
-                  <PortableText value={project.credits} />
-                </div>
-              )}
-            </motion.div>
-          </div>
-        ))}
+              {/* Text Content - Built from center, moved 25vh lower and 25vw left, then slightly more left */}
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="absolute top-1/2 left-[calc(50%-32vw)] z-20 max-w-4xl"
+                style={{ transform: 'translateY(calc(-50% + 25vh))', textAlign: 'left' }}
+              >
+                <Link href={`/selected-works/${project.slug.current}`}>
+                  <h2 className="text-white text-5xl md:text-6xl lg:text-7xl font-bold mb-6 hover:underline transition-all cursor-pointer leading-tight">
+                    {project.title}
+                  </h2>
+                </Link>
+                {project.excerpt && (
+                  <p className="text-white text-lg leading-relaxed text-left">
+                    {project.excerpt}
+                  </p>
+                )}
+              </motion.div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

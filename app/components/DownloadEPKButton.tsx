@@ -27,10 +27,9 @@ export default function DownloadEPKButton({ epkUrl }: DownloadEPKButtonProps) {
   return (
     <button
       onClick={handleDownload}
-      className="w-full bg-white text-black px-6 py-3 font-medium uppercase transition-all hover:bg-gray-200 rounded"
+      className="text-white text-5xl md:text-6xl lg:text-6xl font-bold leading-tight hover:underline cursor-pointer text-right"
     >
-      Download EPK
+      download epk
     </button>
   );
 }
-

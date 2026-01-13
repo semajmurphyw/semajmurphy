@@ -71,7 +71,7 @@ export default async function GalleryPage() {
   return (
     <>
       <Navbar name={biography?.name} socialMediaLinks={socialMediaLinks} />
-      <main className="min-h-screen px-6 py-24 md:px-12 lg:px-24" style={{ backgroundColor: '#222222' }}>
+      <main className="min-h-screen" style={{ backgroundColor: '#222222' }}>
         <Suspense fallback={<div className="text-white">Loading...</div>}>
           <GalleryTabs photos={photos} categories={categories} />
         </Suspense>
