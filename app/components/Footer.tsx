@@ -60,9 +60,9 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
       <nav className="flex flex-col items-start gap-2 md:gap-4">
         {[
           { href: "/", label: "About", isLink: true },
-          { href: "/contact", label: "Contact", isLink: true },
           { href: "/selected-works", label: "Selected Works", isLink: true },
           { href: "/gallery", label: "Gallery", isLink: true },
+          { href: "/contact", label: "Contact", isLink: true },
         ].map((item, index) => {
           const delay = index * 0.1; // Stagger delay: 0s, 0.1s, 0.2s, 0.3s, 0.4s
           const baseClasses = "text-lg font-medium uppercase text-white drop-shadow-lg transition-all hover:underline md:text-xl lg:text-2xl";

@@ -70,12 +70,6 @@ export default function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div>
-        <label
-          htmlFor="name"
-          className="block text-white text-lg mb-2 font-medium"
-        >
-          Name
-        </label>
         <input
           type="text"
           id="name"
@@ -83,18 +77,12 @@ export default function ContactForm() {
           value={formData.name}
           onChange={handleChange}
           required
-          className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:border-white transition-colors"
+          className="w-full px-4 py-3 bg-transparent text-white border border-white rounded focus:outline-none focus:border-white transition-colors"
           placeholder="Your name"
         />
       </div>
 
       <div>
-        <label
-          htmlFor="email"
-          className="block text-white text-lg mb-2 font-medium"
-        >
-          Email
-        </label>
         <input
           type="email"
           id="email"
@@ -102,18 +90,12 @@ export default function ContactForm() {
           value={formData.email}
           onChange={handleChange}
           required
-          className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:border-white transition-colors"
+          className="w-full px-4 py-3 bg-transparent text-white border border-white rounded focus:outline-none focus:border-white transition-colors"
           placeholder="your.email@example.com"
         />
       </div>
 
       <div>
-        <label
-          htmlFor="subject"
-          className="block text-white text-lg mb-2 font-medium"
-        >
-          Subject
-        </label>
         <input
           type="text"
           id="subject"
@@ -121,18 +103,12 @@ export default function ContactForm() {
           value={formData.subject}
           onChange={handleChange}
           required
-          className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:border-white transition-colors"
+          className="w-full px-4 py-3 bg-transparent text-white border border-white rounded focus:outline-none focus:border-white transition-colors"
           placeholder="Subject of your message"
         />
       </div>
 
       <div>
-        <label
-          htmlFor="message"
-          className="block text-white text-lg mb-2 font-medium"
-        >
-          Message
-        </label>
         <textarea
           id="message"
           name="message"
@@ -140,7 +116,7 @@ export default function ContactForm() {
           onChange={handleChange}
           required
           rows={8}
-          className="w-full px-4 py-3 bg-gray-800 text-white border border-gray-700 rounded focus:outline-none focus:border-white transition-colors resize-y"
+          className="w-full px-4 py-3 bg-transparent text-white border border-white rounded focus:outline-none focus:border-white transition-colors resize-y"
           placeholder="Your message"
         />
       </div>
@@ -160,9 +136,9 @@ export default function ContactForm() {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="px-8 py-3 bg-white text-black font-semibold rounded hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="text-white text-2xl md:text-6xl lg:text-4xl font-bold leading-tight hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
       >
-        {isSubmitting ? "Sending..." : "Send Message"}
+        {isSubmitting ? "Sending..." : "send message"}
       </button>
     </form>
   );

@@ -34,10 +34,16 @@ export default function ProjectTabs({ projects }: ProjectTabsProps) {
   const [isPending, startTransition] = useTransition();
   const categoryParam = searchParams.get("category");
 
-  // Get unique categories from projects
+  // Get unique categories from projects and sort alphabetically
   const uniqueCategories = Array.from(
     new Set(projects.map((project) => project.category))
-  ).filter(Boolean);
+  )
+    .filter(Boolean)
+    .sort((a, b) => {
+      const displayNameA = categoryDisplayNames[a] || a || "";
+      const displayNameB = categoryDisplayNames[b] || b || "";
+      return displayNameA.localeCompare(displayNameB);
+    });
 
   // Initialize active category from URL or default to first category
   const getInitialCategory = (): string => {
