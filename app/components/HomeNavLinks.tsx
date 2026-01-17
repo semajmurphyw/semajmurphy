@@ -55,6 +55,7 @@ export default function HomeNavLinks({ biography }: HomeNavLinksProps) {
 
   const navItems = [
     { href: "/", label: "About", isLink: true },
+    { href: "/contact", label: "Contact", isLink: true },
     { href: "/selected-works", label: "Selected Works", isLink: true },
     { href: "/gallery", label: "Gallery", isLink: true },
   ];

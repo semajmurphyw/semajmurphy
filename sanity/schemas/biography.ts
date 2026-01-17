@@ -48,6 +48,15 @@ export default defineType({
       },
       description: 'Upload the EPK PDF file',
     }),
+    defineField({
+      name: 'contactImage',
+      title: 'Contact Image',
+      type: 'image',
+      options: {
+        hotspot: true,
+      },
+      description: 'Image displayed on the contact page',
+    }),
   ],
   preview: {
     select: {

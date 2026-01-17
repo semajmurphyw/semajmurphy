@@ -60,6 +60,7 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
       <nav className="flex flex-col items-start gap-2 md:gap-4">
         {[
           { href: "/", label: "About", isLink: true },
+          { href: "/contact", label: "Contact", isLink: true },
           { href: "/selected-works", label: "Selected Works", isLink: true },
           { href: "/gallery", label: "Gallery", isLink: true },
         ].map((item, index) => {
@@ -117,47 +118,49 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
       </nav>
 
       {/* Name, Social Media, and Copyright - Right Side */}
-      <div className="flex flex-col items-start md:items-end gap-4">
-        {name && (
-          <h2 className="text-xl font-semibold text-white drop-shadow-lg md:text-2xl lg:text-3xl">
-            {name}
-          </h2>
-        )}
+      <div className="flex flex-col items-start md:items-end justify-between self-stretch">
+        <div className="flex flex-col items-start md:items-end gap-4">
+          {name && (
+            <h2 className="text-xl font-semibold text-white drop-shadow-lg md:text-2xl lg:text-3xl">
+              {name}
+            </h2>
+          )}
 
-        {/* Social Media Icons - Right Aligned */}
-        {displayLinks.length > 0 && (
-          <div className="flex gap-4">
-            {displayLinks.map((link) => {
-              const iconUrl = link.icon
-                ? urlFor(link.icon).width(32).height(32).url()
-                : null;
-              return (
-                <a
-                  key={link._id || link.platformName}
-                  href={link.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-opacity hover:opacity-80"
-                  aria-label={link.platformName}
-                >
-                  {iconUrl ? (
-                    <Image
-                      src={iconUrl}
-                      alt={link.platformName}
-                      width={32}
-                      height={32}
-                      className="drop-shadow-lg"
-                    />
-                  ) : (
-                    <span className="text-white drop-shadow-lg">
-                      {link.platformName}
-                    </span>
-                  )}
-                </a>
-              );
-            })}
-          </div>
-        )}
+          {/* Social Media Icons - Right Aligned */}
+          {displayLinks.length > 0 && (
+            <div className="flex gap-4">
+              {displayLinks.map((link) => {
+                const iconUrl = link.icon
+                  ? urlFor(link.icon).width(32).height(32).url()
+                  : null;
+                return (
+                  <a
+                    key={link._id || link.platformName}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="transition-opacity hover:opacity-80"
+                    aria-label={link.platformName}
+                  >
+                    {iconUrl ? (
+                      <Image
+                        src={iconUrl}
+                        alt={link.platformName}
+                        width={32}
+                        height={32}
+                        className="drop-shadow-lg"
+                      />
+                    ) : (
+                      <span className="text-white drop-shadow-lg">
+                        {link.platformName}
+                      </span>
+                    )}
+                  </a>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Copyright Text - Bottom Right */}
         <p className="text-white text-sm">
