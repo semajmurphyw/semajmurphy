@@ -27,21 +27,24 @@ async function getSocialMediaLinks() {
   return links;
 }
 
-async function getPhotoGallery() {
-  const photos = await client.fetch(
-    `*[_type == "photoGallery"] | order(date desc){
+async function getCategories() {
+  const categories = await client.fetch(
+    `*[_type == "category"]{
       _id,
       title,
-      image,
-      date,
-      category->{
+      slug{
+        current
+      },
+      galleryItems[]->{
         _id,
         title,
-        slug
+        image,
+        date,
+        videoUrl
       }
     }`
   );
-  return photos;
+  return categories;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -57,23 +60,19 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function GalleryPage() {
   const biography = await getBiography();
   const socialMediaLinks = await getSocialMediaLinks();
-  const photos = await getPhotoGallery();
+  const categories = await getCategories();
 
-  // Get unique categories from photos
-  const categoryMap = new Map();
-  photos.forEach((photo: any) => {
-    if (photo.category && !categoryMap.has(photo.category._id)) {
-      categoryMap.set(photo.category._id, photo.category);
-    }
-  });
-  const categories = Array.from(categoryMap.values());
+  // Filter out categories that have no gallery items
+  const categoriesWithItems = categories.filter(
+    (category: any) => category.galleryItems && category.galleryItems.length > 0
+  );
 
   return (
     <>
       <Navbar name={biography?.name} socialMediaLinks={socialMediaLinks} />
       <main className="min-h-screen" style={{ backgroundColor: '#222222' }}>
         <Suspense fallback={<div className="text-white">Loading...</div>}>
-          <GalleryTabs photos={photos} categories={categories} />
+          <GalleryTabs categories={categoriesWithItems} />
         </Suspense>
       </main>
       <Footer name={biography?.name} socialMediaLinks={socialMediaLinks} />

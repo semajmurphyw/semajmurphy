@@ -78,7 +78,7 @@ export default function ContactForm() {
           onChange={handleChange}
           required
           className="w-full px-4 py-3 bg-transparent text-white border border-white rounded focus:outline-none focus:border-white transition-colors"
-          placeholder="Your name"
+          placeholder="name"
         />
       </div>
 
@@ -91,7 +91,7 @@ export default function ContactForm() {
           onChange={handleChange}
           required
           className="w-full px-4 py-3 bg-transparent text-white border border-white rounded focus:outline-none focus:border-white transition-colors"
-          placeholder="your.email@example.com"
+          placeholder="email@email.com"
         />
       </div>
 
@@ -104,7 +104,7 @@ export default function ContactForm() {
           onChange={handleChange}
           required
           className="w-full px-4 py-3 bg-transparent text-white border border-white rounded focus:outline-none focus:border-white transition-colors"
-          placeholder="Subject of your message"
+          placeholder="subject"
         />
       </div>
 
@@ -117,7 +117,7 @@ export default function ContactForm() {
           required
           rows={8}
           className="w-full px-4 py-3 bg-transparent text-white border border-white rounded focus:outline-none focus:border-white transition-colors resize-y"
-          placeholder="Your message"
+          placeholder="message"
         />
       </div>
 
@@ -138,7 +138,7 @@ export default function ContactForm() {
         disabled={isSubmitting}
         className="text-white text-2xl md:text-6xl lg:text-4xl font-bold leading-tight hover:underline cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:no-underline"
       >
-        {isSubmitting ? "Sending..." : "send message"}
+        {isSubmitting ? "submitting..." : "submit"}
       </button>
     </form>
   );

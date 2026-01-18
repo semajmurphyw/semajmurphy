@@ -9,7 +9,7 @@ interface Photo {
   title: string;
   image: any;
   date: string;
-  category: any;
+  videoUrl?: string;
 }
 
 interface GalleryGridProps {
@@ -48,9 +48,9 @@ function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseS
         // Maximum distance for scaling (half of viewport height)
         const maxDistance = viewportHeight * 0.5;
         
-        // Scale from 1.5 (center) to 1.0 (far from center)
+        // Scale from 1.6 (center, 80vh) to 1.0 (far from center, 50vh)
         const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
-        const newScale = 1.5 - (normalizedDistance * 0.5);
+        const newScale = 1.6 - (normalizedDistance * 0.6);
         
         setScale(newScale);
       } else {
@@ -65,9 +65,9 @@ function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseS
         // Maximum distance for scaling (half of viewport width)
         const maxDistance = viewportWidth * 0.5;
         
-        // Scale from 1.5 (center) to 1.0 (far from center)
+        // Scale from 1.6 (center, 80vh) to 1.0 (far from center, 50vh)
         const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
-        const newScale = 1.5 - (normalizedDistance * 0.5);
+        const newScale = 1.6 - (normalizedDistance * 0.6);
         
         setScale(newScale);
       }
@@ -102,13 +102,32 @@ function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseS
     };
   }, []);
 
-  const sizeVariation = (item.photo._id.charCodeAt(0) % 3) * 50;
-  const imageWidth = baseSize + sizeVariation;
-  const imageHeight = imageWidth / item.aspectRatio;
+  // Calculate base height (will reach 80vh when centered with scale 1.6)
+  // Scale goes from 1.0 (far, 50vh) to 1.6 (center, 80vh)
+  // So base height = 50vh
+  const [imageHeight, setImageHeight] = useState(0);
+  const [imageWidth, setImageWidth] = useState(0);
+
+  useEffect(() => {
+    const updateImageSize = () => {
+      const viewportHeight = window.innerHeight;
+      const baseHeight = viewportHeight * 0.5; // 50vh base (will scale to 80vh when centered)
+      const sizeVariation = (item.photo._id.charCodeAt(0) % 3) * (viewportHeight * 0.02); // 2% variation
+      const calculatedHeight = baseHeight + sizeVariation;
+      const calculatedWidth = calculatedHeight * item.aspectRatio;
+      
+      setImageHeight(calculatedHeight);
+      setImageWidth(calculatedWidth);
+    };
+
+    updateImageSize();
+    window.addEventListener("resize", updateImageSize);
+    return () => window.removeEventListener("resize", updateImageSize);
+  }, [item.aspectRatio, item.photo._id]);
 
   // Calculate z-index based on scale (higher scale = higher z-index)
-  // When hovered, set z-index much higher to appear above all others
-  const zIndex = isHovered ? 1000 : Math.round(scale * 100);
+  // When hovered, set z-index higher to appear above other images (but below navbar overlay z-[90])
+  const zIndex = isHovered ? 50 : Math.round(scale * 10);
 
   return (
     <div
@@ -130,16 +149,18 @@ function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseS
       </div>
       
       {/* Image */}
-      <div className="relative overflow-hidden cursor-pointer max-w-[100vw] md:max-w-none" style={{ width: `${imageWidth}px`, height: `${imageHeight}px` }}>
-        {imageUrl && (
-          <Image
-            src={imageUrl}
-            alt={item.photo.title}
-            fill
-            className="object-cover"
-          />
-        )}
-      </div>
+      {imageHeight > 0 && imageWidth > 0 && (
+        <div className="relative overflow-hidden cursor-pointer max-w-[100vw] md:max-w-none" style={{ width: `${imageWidth}px`, height: `${imageHeight}px` }}>
+          {imageUrl && (
+            <Image
+              src={imageUrl}
+              alt={item.photo.title}
+              fill
+              className="object-cover"
+            />
+          )}
+        </div>
+      )}
       
       {/* Date below image - only visible on hover, hidden on mobile */}
       {item.photo.date && (

@@ -162,10 +162,22 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
           )}
         </div>
 
-        {/* Copyright Text - Bottom Right */}
-        <p className="text-white text-sm">
-          © {currentYear} {name || "All rights reserved"}
-        </p>
+        {/* Collaboration Inquiry and Copyright - Bottom Right */}
+        <div className="flex flex-col items-start md:items-end gap-2">
+          <p className="text-white text-sm text-right">
+            For aligned inquiries and collborations {" "}
+            <a
+              href="mailto:semajmurphy@gmail.com"
+              className="underline text-white text-sm"
+              style={{ fontFamily: 'var(--font-figtree), sans-serif' }}
+            >
+              semajmurphy@gmail.com
+            </a>
+          </p>
+          <p className="text-white text-sm">
+            © {currentYear} {name || "All rights reserved"}
+          </p>
+        </div>
       </div>
     </footer>
   );

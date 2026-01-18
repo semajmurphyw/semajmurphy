@@ -37,24 +37,22 @@ export default defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
-      name: 'category',
-      title: 'Category',
-      type: 'reference',
-      to: [{ type: 'category' }],
-      validation: (Rule) => Rule.required(),
+      name: 'videoUrl',
+      title: 'Video URL',
+      type: 'url',
+      description: 'Optional video URL (YouTube, Vimeo, etc.)',
     }),
   ],
   preview: {
     select: {
       title: 'title',
-      categoryTitle: 'category.title',
       date: 'date',
       media: 'image',
     },
-    prepare({ title, categoryTitle, date, media }) {
+    prepare({ title, date, media }) {
       return {
         title,
-        subtitle: `${categoryTitle || 'No category'} • ${date ? new Date(date).toLocaleDateString() : 'No date'}`,
+        subtitle: date ? new Date(date).toLocaleDateString() : 'No date',
         media,
       }
     },

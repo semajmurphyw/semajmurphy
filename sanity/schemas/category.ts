@@ -21,6 +21,18 @@ export default defineType({
       },
       validation: (Rule) => Rule.required(),
     }),
+    defineField({
+      name: 'galleryItems',
+      title: 'Gallery Items',
+      type: 'array',
+      of: [
+        {
+          type: 'reference',
+          to: [{ type: 'photoGallery' }],
+        },
+      ],
+      description: 'Add photo gallery items in the desired order',
+    }),
   ],
   preview: {
     select: {
