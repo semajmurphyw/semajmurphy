@@ -28,13 +28,11 @@ export default defineType({
       options: {
         hotspot: true,
       },
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'date',
       title: 'Date',
       type: 'date',
-      validation: (Rule) => Rule.required(),
     }),
     defineField({
       name: 'videoUrl',
