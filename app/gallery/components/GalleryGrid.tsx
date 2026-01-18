@@ -23,8 +23,8 @@ interface GridItem {
   aspectRatio: number;
 }
 
-// Individual image component with scroll-based scaling
-function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseSize: number; gap: number; imageUrl: string | null }) {
+// Individual image/video component with scroll-based scaling
+function GalleryImage({ item, baseSize, gap, imageUrl, videoUrl }: { item: GridItem; baseSize: number; gap: number; imageUrl: string | null; videoUrl?: string | null }) {
   const imageRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
   const [isHovered, setIsHovered] = useState(false);
@@ -148,17 +148,93 @@ function GalleryImage({ item, baseSize, gap, imageUrl }: { item: GridItem; baseS
         </h3>
       </div>
       
-      {/* Image */}
+      {/* Image or Video */}
       {imageHeight > 0 && imageWidth > 0 && (
         <div className="relative overflow-hidden cursor-pointer max-w-[100vw] md:max-w-none" style={{ width: `${imageWidth}px`, height: `${imageHeight}px` }}>
-          {imageUrl && (
+          {videoUrl ? (
+            // Video player
+            (() => {
+              // Extract YouTube video ID
+              const getYouTubeVideoId = (url: string): string | null => {
+                if (!url) return null;
+                const patterns = [
+                  /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+                  /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+                ];
+                for (const pattern of patterns) {
+                  const match = url.match(pattern);
+                  if (match && match[1]) {
+                    return match[1];
+                  }
+                }
+                return null;
+              };
+
+              // Extract Vimeo video ID
+              const getVimeoVideoId = (url: string): string | null => {
+                if (!url) return null;
+                const patterns = [
+                  /(?:vimeo\.com\/)(\d+)/,
+                  /(?:player\.vimeo\.com\/video\/)(\d+)/,
+                ];
+                for (const pattern of patterns) {
+                  const match = url.match(pattern);
+                  if (match && match[1]) {
+                    return match[1];
+                  }
+                }
+                return null;
+              };
+
+              const youtubeId = getYouTubeVideoId(videoUrl);
+              const vimeoId = getVimeoVideoId(videoUrl);
+
+              if (youtubeId) {
+                const embedUrl = `https://www.youtube.com/embed/${youtubeId}`;
+                return (
+                  <iframe
+                    src={embedUrl}
+                    title={item.photo.title}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                    style={{ border: 'none' }}
+                  />
+                );
+              } else if (vimeoId) {
+                const embedUrl = `https://player.vimeo.com/video/${vimeoId}`;
+                return (
+                  <iframe
+                    src={embedUrl}
+                    title={item.photo.title}
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                    className="w-full h-full"
+                    style={{ border: 'none' }}
+                  />
+                );
+              } else {
+                // Fallback for other video URLs or direct video files
+                return (
+                  <video
+                    src={videoUrl}
+                    controls
+                    className="w-full h-full object-cover"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                );
+              }
+            })()
+          ) : imageUrl ? (
+            // Image
             <Image
               src={imageUrl}
               alt={item.photo.title}
               fill
               className="object-cover"
             />
-          )}
+          ) : null}
         </div>
       )}
       
@@ -292,6 +368,7 @@ export default function GalleryGrid({ photos }: GalleryGridProps) {
               baseSize={baseSize}
               gap={gap}
               imageUrl={imageUrl}
+              videoUrl={item.photo.videoUrl}
             />
           );
         })}
