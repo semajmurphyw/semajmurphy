@@ -112,7 +112,7 @@ export default function GalleryTabs({ categories }: GalleryTabsProps) {
         </div>
         
         {/* Tabs - Mobile scrolls with content, Desktop fixed */}
-        <div className="flex flex-wrap gap-2 md:gap-4 px-6 pr-12 pt-2 pb-8 md:pr-6 md:pt-6 md:absolute md:bottom-0 md:left-0 md:pb-6 md:pl-6 z-40 bg-transparent">
+        <div className="flex flex-wrap gap-2 md:gap-4 px-6 pr-12 pt-2 pb-8 md:pr-6 md:pt-6 md:absolute md:bottom-0 md:left-0 md:pb-6 md:pl-6 z-[100] bg-transparent">
           {sortedCategories.map((category) => {
             const categorySlug = getCategorySlug(category);
             return (

@@ -164,14 +164,14 @@ export default function Footer({ name, socialMediaLinks }: FooterProps) {
 
         {/* Collaboration Inquiry and Copyright - Bottom Right */}
         <div className="flex flex-col items-start md:items-end gap-2">
-          <p className="text-white text-sm text-right">
+          <p className="text-white text-sm text-left md:text-right py-5 md:py-0">
             For aligned inquiries and collborations {" "}
             <a
-              href="mailto:semajmurphy@gmail.com"
+              href="mailto:semajmurphyw@gmail.com"
               className="underline text-white text-sm"
               style={{ fontFamily: 'var(--font-figtree), sans-serif' }}
             >
-              semajmurphy@gmail.com
+              semajmurphyw@gmail.com
             </a>
           </p>
           <p className="text-white text-sm">

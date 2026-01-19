@@ -23,233 +23,186 @@ interface GridItem {
   aspectRatio: number;
 }
 
-// Individual image/video component with scroll-based scaling
-function GalleryImage({ item, baseSize, gap, imageUrl, videoUrl }: { item: GridItem; baseSize: number; gap: number; imageUrl: string | null; videoUrl?: string | null }) {
-  const imageRef = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(1);
+// Individual image/video component
+function GalleryImage({ item, imageUrl, videoUrl }: { item: GridItem; imageUrl: string | null; videoUrl?: string | null }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!imageRef.current) return;
-
-      const rect = imageRef.current.getBoundingClientRect();
-      const isMobile = window.innerWidth < 768;
-      
-      if (isMobile) {
-        // Mobile: Calculate based on vertical position
-        const viewportHeight = window.innerHeight;
-        const viewportCenter = viewportHeight / 2;
-        const imageCenter = rect.top + rect.height / 2;
-        
-        // Calculate distance from viewport center
-        const distanceFromCenter = Math.abs(imageCenter - viewportCenter);
-        
-        // Maximum distance for scaling (half of viewport height)
-        const maxDistance = viewportHeight * 0.5;
-        
-        // Scale from 1.6 (center, 80vh) to 1.0 (far from center, 50vh)
-        const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
-        const newScale = 1.6 - (normalizedDistance * 0.6);
-        
-        setScale(newScale);
-      } else {
-        // Desktop: Calculate based on horizontal position
-        const viewportWidth = window.innerWidth;
-        const viewportCenter = viewportWidth / 2;
-        const imageCenter = rect.left + rect.width / 2;
-        
-        // Calculate distance from viewport center
-        const distanceFromCenter = Math.abs(imageCenter - viewportCenter);
-        
-        // Maximum distance for scaling (half of viewport width)
-        const maxDistance = viewportWidth * 0.5;
-        
-        // Scale from 1.6 (center, 80vh) to 1.0 (far from center, 50vh)
-        const normalizedDistance = Math.min(distanceFromCenter / maxDistance, 1);
-        const newScale = 1.6 - (normalizedDistance * 0.6);
-        
-        setScale(newScale);
-      }
-    };
-
-    // Initial calculation
-    const timeout = setTimeout(handleScroll, 100);
-    
-    // Find scroll containers
-    const horizontalScrollContainer = imageRef.current?.closest('.overflow-x-auto') as HTMLElement;
-    const verticalScrollContainer = imageRef.current?.closest('.overflow-y-auto') as HTMLElement;
-    
-    if (horizontalScrollContainer) {
-      horizontalScrollContainer.addEventListener("scroll", handleScroll, { passive: true });
-    }
-    if (verticalScrollContainer) {
-      verticalScrollContainer.addEventListener("scroll", handleScroll, { passive: true });
-    }
-    
-    // Also listen to window scroll
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    
-    return () => {
-      clearTimeout(timeout);
-      if (horizontalScrollContainer) {
-        horizontalScrollContainer.removeEventListener("scroll", handleScroll);
-      }
-      if (verticalScrollContainer) {
-        verticalScrollContainer.removeEventListener("scroll", handleScroll);
-      }
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, []);
-
-  // Calculate base height (will reach 80vh when centered with scale 1.6)
-  // Scale goes from 1.0 (far, 50vh) to 1.6 (center, 80vh)
-  // So base height = 50vh
+  // Calculate sizes for images (full height)
   const [imageHeight, setImageHeight] = useState(0);
   const [imageWidth, setImageWidth] = useState(0);
 
+  // Check if mobile
   useEffect(() => {
-    const updateImageSize = () => {
-      const viewportHeight = window.innerHeight;
-      const baseHeight = viewportHeight * 0.5; // 50vh base (will scale to 80vh when centered)
-      const sizeVariation = (item.photo._id.charCodeAt(0) % 3) * (viewportHeight * 0.02); // 2% variation
-      const calculatedHeight = baseHeight + sizeVariation;
-      const calculatedWidth = calculatedHeight * item.aspectRatio;
-      
-      setImageHeight(calculatedHeight);
-      setImageWidth(calculatedWidth);
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
     };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
-    updateImageSize();
-    window.addEventListener("resize", updateImageSize);
-    return () => window.removeEventListener("resize", updateImageSize);
-  }, [item.aspectRatio, item.photo._id]);
+  useEffect(() => {
+    if (!videoUrl) {
+      // For images: full viewport height
+      const updateImageSize = () => {
+        const viewportHeight = window.innerHeight;
+        const calculatedHeight = viewportHeight;
+        const calculatedWidth = calculatedHeight * item.aspectRatio;
+        
+        setImageHeight(calculatedHeight);
+        setImageWidth(calculatedWidth);
+      };
 
-  // Calculate z-index based on scale (higher scale = higher z-index)
-  // When hovered, set z-index higher to appear above other images (but below navbar overlay z-[90])
-  const zIndex = isHovered ? 50 : Math.round(scale * 10);
+      updateImageSize();
+      window.addEventListener("resize", updateImageSize);
+      return () => window.removeEventListener("resize", updateImageSize);
+    }
+  }, [item.aspectRatio, videoUrl]);
+
+  const containerWidth = videoUrl 
+    ? undefined // Let video container size itself
+    : (imageWidth > 0 ? imageWidth : undefined);
 
   return (
     <div
-      ref={imageRef}
-      className="group flex flex-col flex-shrink-0 items-center md:items-start"
+      className={`group flex flex-shrink-0 items-center md:items-start ${videoUrl ? 'flex-col md:flex-row' : 'flex-col'} w-full md:w-auto`}
       style={{
-        transform: `scale(${scale})`,
-        transformOrigin: 'center center',
-        zIndex: zIndex,
+        zIndex: isHovered ? 50 : 10,
+        ...(containerWidth && !isMobile && { width: `${containerWidth}px` }),
+        ...(isMobile && { width: '100vw' }),
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Title above image - only visible on hover, hidden on mobile */}
-      <div className="hidden md:block text-white text-left mb-2 opacity-0 group-hover:opacity-100 transition-none">
-        <h3 className="text-lg font-semibold">
-          {item.photo.title}
-        </h3>
-      </div>
-      
       {/* Image or Video */}
-      {imageHeight > 0 && imageWidth > 0 && (
-        <div className="relative overflow-hidden cursor-pointer max-w-[100vw] md:max-w-none" style={{ width: `${imageWidth}px`, height: `${imageHeight}px` }}>
-          {videoUrl ? (
-            // Video player
-            (() => {
-              // Extract YouTube video ID
-              const getYouTubeVideoId = (url: string): string | null => {
-                if (!url) return null;
-                const patterns = [
-                  /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
-                  /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
-                ];
-                for (const pattern of patterns) {
-                  const match = url.match(pattern);
-                  if (match && match[1]) {
-                    return match[1];
-                  }
-                }
-                return null;
-              };
-
-              // Extract Vimeo video ID
-              const getVimeoVideoId = (url: string): string | null => {
-                if (!url) return null;
-                const patterns = [
-                  /(?:vimeo\.com\/)(\d+)/,
-                  /(?:player\.vimeo\.com\/video\/)(\d+)/,
-                ];
-                for (const pattern of patterns) {
-                  const match = url.match(pattern);
-                  if (match && match[1]) {
-                    return match[1];
-                  }
-                }
-                return null;
-              };
-
-              const youtubeId = getYouTubeVideoId(videoUrl);
-              const vimeoId = getVimeoVideoId(videoUrl);
-
-              if (youtubeId) {
-                const embedUrl = `https://www.youtube.com/embed/${youtubeId}`;
-                return (
-                  <iframe
-                    src={embedUrl}
-                    title={item.photo.title}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
-                    style={{ border: 'none' }}
-                  />
-                );
-              } else if (vimeoId) {
-                const embedUrl = `https://player.vimeo.com/video/${vimeoId}`;
-                return (
-                  <iframe
-                    src={embedUrl}
-                    title={item.photo.title}
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowFullScreen
-                    className="w-full h-full"
-                    style={{ border: 'none' }}
-                  />
-                );
-              } else {
-                // Fallback for other video URLs or direct video files
-                return (
-                  <video
-                    src={videoUrl}
-                    controls
-                    className="w-full h-full object-cover"
-                  >
-                    Your browser does not support the video tag.
-                  </video>
-                );
+      {videoUrl ? (
+        (() => {
+          // Extract YouTube video ID
+          const getYouTubeVideoId = (url: string): string | null => {
+            if (!url) return null;
+            const patterns = [
+              /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/,
+              /youtube\.com\/watch\?.*v=([^&\n?#]+)/,
+            ];
+            for (const pattern of patterns) {
+              const match = url.match(pattern);
+              if (match && match[1]) {
+                return match[1];
               }
-            })()
-          ) : imageUrl ? (
-            // Image
-            <Image
-              src={imageUrl}
-              alt={item.photo.title}
-              fill
-              className="object-cover"
-            />
-          ) : null}
+            }
+            return null;
+          };
+
+          // Extract Vimeo video ID
+          const getVimeoVideoId = (url: string): string | null => {
+            if (!url) return null;
+            const patterns = [
+              /(?:vimeo\.com\/)(\d+)/,
+              /(?:player\.vimeo\.com\/video\/)(\d+)/,
+            ];
+            for (const pattern of patterns) {
+              const match = url.match(pattern);
+              if (match && match[1]) {
+                return match[1];
+              }
+            }
+            return null;
+          };
+
+          const youtubeId = getYouTubeVideoId(videoUrl);
+          const vimeoId = getVimeoVideoId(videoUrl);
+
+          return (
+            <>
+              {/* Block 1: Title and Date - centered on mobile, right aligned on desktop */}
+              <div className="flex-shrink-0 flex flex-col justify-center items-center md:items-end self-center w-full md:w-auto px-4 md:px-0" style={{ 
+                minWidth: isMobile ? 'auto' : '600px', 
+                color: 'white', 
+                textAlign: isMobile ? 'center' : 'right',
+                paddingTop: isMobile ? '120px' : '0',
+                marginBottom: isMobile ? '20px' : '0'
+              }}>
+                <h3 className="text-2xl font-semibold" style={{ color: 'white', display: 'block', width: isMobile ? 'auto' : '60%' }}>
+                  {item.photo.title || ''}
+                </h3>
+                {item.photo.date && (
+                  <p className="text-sm mt-1" style={{ color: 'white', display: 'block' }}>
+                    {new Date(item.photo.date).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                )}
+              </div>
+              
+              {/* Block 2: Video */}
+              <div className="flex-shrink-0 w-full md:w-auto flex justify-center" style={{ 
+                marginLeft: isMobile ? '0' : '40px', 
+                marginRight: isMobile ? '0' : '400px', 
+                paddingTop: isMobile ? '0' : '400px', 
+                paddingBottom: isMobile ? '120px' : '400px' 
+              }}>
+                <div style={{ width: isMobile ? '90%' : '50vw', minWidth: isMobile ? 'auto' : '300px', aspectRatio: '16 / 9' }}>
+                  {youtubeId ? (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${youtubeId}`}
+                      title={item.photo.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      style={{ 
+                        border: 'none',
+                        width: '100%',
+                        height: '100%',
+                      }}
+                    />
+                  ) : vimeoId ? (
+                    <iframe
+                      src={`https://player.vimeo.com/video/${vimeoId}`}
+                      title={item.photo.title}
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                      style={{ 
+                        border: 'none',
+                        width: '100%',
+                        height: '100%',
+                      }}
+                    />
+                  ) : (
+                    <video
+                      src={videoUrl}
+                      controls
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
+                </div>
+              </div>
+            </>
+          );
+        })()
+      ) : imageUrl && imageHeight > 0 && imageWidth > 0 ? (
+        // Image - full height on desktop, 100vw on mobile
+        <div className="relative overflow-hidden cursor-pointer flex-shrink-0 w-full md:w-auto" style={{ 
+          width: isMobile ? '100vw' : `${imageWidth}px`, 
+          height: isMobile ? 'auto' : `${imageHeight}px` 
+        }}>
+          <Image
+            src={imageUrl}
+            alt={item.photo.title}
+            width={imageWidth}
+            height={imageHeight}
+            className="object-cover"
+            style={{ width: '100%', height: isMobile ? 'auto' : '100%' }}
+          />
         </div>
-      )}
-      
-      {/* Date below image - only visible on hover, hidden on mobile */}
-      {item.photo.date && (
-        <div className="hidden md:block text-white text-left mt-2 opacity-0 group-hover:opacity-100 transition-none">
-          <p className="text-sm">
-            {new Date(item.photo.date).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            })}
-          </p>
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -313,24 +266,6 @@ export default function GalleryGrid({ photos }: GalleryGridProps) {
     );
   }
 
-  const [baseSize, setBaseSize] = useState(250); // Base size for images
-  const gap = 60; // Gap between images
-
-  // Update base size based on screen size
-  useEffect(() => {
-    const updateBaseSize = () => {
-      if (window.innerWidth < 768) {
-        setBaseSize(200); // Smaller on mobile
-      } else {
-        setBaseSize(250); // Normal on desktop
-      }
-    };
-
-    updateBaseSize();
-    window.addEventListener("resize", updateBaseSize);
-    return () => window.removeEventListener("resize", updateBaseSize);
-  }, []);
-
   return (
     <div ref={containerRef} className="h-full md:h-full flex flex-col md:flex-row items-start md:items-center relative md:min-w-max">
       {/* Gallery text in left buffer - Hidden on mobile */}
@@ -348,9 +283,6 @@ export default function GalleryGrid({ photos }: GalleryGridProps) {
       
       <div
         className="flex flex-col md:flex-row items-center md:items-center h-full md:h-full w-full md:w-max px-6 pt-10 pb-4 md:py-0 gallery-images-desktop"
-        style={{
-          gap: `${gap}px`,
-        }}
       >
         {gridItems.map((item) => {
           const imageUrl = item.photo.image
@@ -365,8 +297,6 @@ export default function GalleryGrid({ photos }: GalleryGridProps) {
             <GalleryImage
               key={item.photo._id}
               item={item}
-              baseSize={baseSize}
-              gap={gap}
               imageUrl={imageUrl}
               videoUrl={item.photo.videoUrl}
             />
