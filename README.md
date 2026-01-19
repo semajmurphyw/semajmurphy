@@ -1,36 +1,28 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Intro guide to setting up this site:
 
-## Getting Started
+Step 1: go to the repo, click "clone repo", and pick a destination on your computer to store the code file.
 
-First, run the development server:
+step 2: create a file called ".env.local" at the project root. then, go to Vercel and grab the values in the "environment variables" section, and add them line by line. it should look something like this:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+ENV_VAR=123asgdf1&
+ENV_VAR_TWO=word
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+These are where you store "keys", which are used to access services like the resend api (for the contact form) and the sanity api (for the cms/database). It's important to never push these to github for security reasons, which is why you have to add them manually.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Step 3: install Node (ask Cursor to help you with this, just install the most recent version). make sure the terminal shows the project root (semajmurphy most likely) before the text input to make sure you're editing the project folder.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+step 4: open the terminal (control + `), then run the command "npm install". this will install the packages requried to work on the site.
 
-## Learn More
+To run the project on your computer:
 
-To learn more about Next.js, take a look at the following resources:
+just run the command in the terminal (control + `): "npm run dev". Then, visit localhost:3000 in your browser once the project has booted up.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+To publish changes to the code:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Vercel is set to automatically rebuild the site once you push changes to github. To push changes to github, run these 3 commands in the terminal sequentially:
 
-## Deploy on Vercel
+git add .
+git commit -m "describe your changes here"
+git push origin main
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+These 3 commands in a row are your method of publishing code to github, and pushing them to the live site.
