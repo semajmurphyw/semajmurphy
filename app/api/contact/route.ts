@@ -5,15 +5,108 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
+// Simple in-memory rate limiting store
+// Note: This works per serverless function instance. For production at scale, consider using Vercel KV or Upstash Redis
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 5; // Max 5 requests per minute per IP
+
+function getClientIP(request: NextRequest): string {
+  // Try various headers that Vercel/proxies set
+  const forwarded = request.headers.get('x-forwarded-for');
+  const realIP = request.headers.get('x-real-ip');
+  const cfConnectingIP = request.headers.get('cf-connecting-ip');
+  
+  return cfConnectingIP || realIP || forwarded?.split(',')[0] || 'unknown';
+}
+
+function checkRateLimit(ip: string): { allowed: boolean; resetIn?: number } {
+  const now = Date.now();
+  const record = rateLimitStore.get(ip);
+
+  // Clean up old entries periodically
+  if (rateLimitStore.size > 1000) {
+    for (const [key, value] of rateLimitStore.entries()) {
+      if (value.resetTime < now) {
+        rateLimitStore.delete(key);
+      }
+    }
+  }
+
+  if (!record || record.resetTime < now) {
+    // New or expired record
+    rateLimitStore.set(ip, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    return { allowed: true };
+  }
+
+  if (record.count >= RATE_LIMIT_MAX_REQUESTS) {
+    return { 
+      allowed: false, 
+      resetIn: Math.ceil((record.resetTime - now) / 1000) 
+    };
+  }
+
+  record.count++;
+  return { allowed: true };
+}
+
+function validateSpamContent(text: string): boolean {
+  // Check for common spam patterns
+  const spamPatterns = [
+    /(?:https?:\/\/)?(?:www\.)?(?:bit\.ly|tinyurl|t\.co|goo\.gl|short\.link)/i, // URL shorteners
+    /(?:buy|sell|cheap|discount|click here|act now|limited time)/i, // Common spam phrases
+    /(?:casino|poker|viagra|cialis|pharmacy)/i, // Common spam topics
+  ];
+
+  return spamPatterns.some(pattern => pattern.test(text));
+}
+
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting check
+    const clientIP = getClientIP(request);
+    const rateLimit = checkRateLimit(clientIP);
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { 
+          error: `Too many requests. Please try again in ${rateLimit.resetIn} seconds.` 
+        },
+        { 
+          status: 429,
+          headers: {
+            'Retry-After': String(rateLimit.resetIn),
+          }
+        }
+      );
+    }
+
     const body = await request.json();
-    const { name, email, subject, message } = body;
+    const { name, email, subject, message, honeypot } = body;
+
+    // Honeypot check - if this field is filled, it's a bot
+    if (honeypot) {
+      // Silently reject - don't let bots know they were caught
+      return NextResponse.json(
+        { message: 'Email sent successfully' },
+        { status: 200 }
+      );
+    }
 
     // Validate required fields
     if (!name || !email || !subject || !message) {
       return NextResponse.json(
         { error: 'All fields are required' },
+        { status: 400 }
+      );
+    }
+
+    // Basic length validation to prevent abuse
+    if (name.length > 200 || email.length > 200 || subject.length > 200 || message.length > 5000) {
+      return NextResponse.json(
+        { error: 'One or more fields exceed maximum length' },
         { status: 400 }
       );
     }
@@ -24,6 +117,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Invalid email format' },
         { status: 400 }
+      );
+    }
+
+    // Spam content detection
+    const combinedText = `${name} ${subject} ${message}`.toLowerCase();
+    if (validateSpamContent(combinedText)) {
+      // Silently reject spam
+      return NextResponse.json(
+        { message: 'Email sent successfully' },
+        { status: 200 }
       );
     }
 

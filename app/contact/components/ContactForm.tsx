@@ -8,6 +8,7 @@ export default function ContactForm() {
     email: "",
     subject: "",
     message: "",
+    honeypot: "", // Honeypot field - hidden from users, bots will fill it
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<{
@@ -53,6 +54,7 @@ export default function ContactForm() {
         email: "",
         subject: "",
         message: "",
+        honeypot: "",
       });
     } catch (error) {
       setSubmitStatus({
@@ -69,6 +71,24 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Honeypot field - hidden from users but visible to bots */}
+      <input
+        type="text"
+        name="honeypot"
+        value={formData.honeypot}
+        onChange={handleChange}
+        tabIndex={-1}
+        autoComplete="off"
+        style={{
+          position: 'absolute',
+          left: '-9999px',
+          width: '1px',
+          height: '1px',
+          overflow: 'hidden',
+        }}
+        aria-hidden="true"
+      />
+      
       <div>
         <input
           type="text"
