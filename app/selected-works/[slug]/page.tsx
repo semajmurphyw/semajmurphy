@@ -52,6 +52,9 @@ async function getProject(slug: string) {
   return project;
 }
 
+// Revalidate every 60 seconds to ensure fresh CMS content
+export const revalidate = 60;
+
 export async function generateMetadata({
   params,
 }: {

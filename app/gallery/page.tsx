@@ -47,6 +47,9 @@ async function getCategories() {
   return categories;
 }
 
+// Revalidate every 60 seconds to ensure fresh CMS content
+export const revalidate = 60;
+
 export async function generateMetadata(): Promise<Metadata> {
   const biography = await getBiography();
   const name = biography?.name || "";
